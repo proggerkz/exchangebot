@@ -4,6 +4,7 @@ from aiogram.utils import executor
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from english import english
 from russian import russian
+from russian import other
 import database
 
 
@@ -20,5 +21,6 @@ async def choose_language(message: types.message):
 
 russian.register_step_russian(dp)
 english.register_step_russian(dp)
+other.check_text(dp)
 if __name__ == "__main__":
     executor.start_polling(dp, skip_updates=True)
