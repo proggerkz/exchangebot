@@ -4,10 +4,7 @@ from aiogram.utils import executor
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from english import english
 from russian import russian
-
-
-def on_startup(_):
-    print('Bot is online now')
+import database
 
 
 @dp.message_handler(commands=['start'])
@@ -23,4 +20,5 @@ async def choose_language(message: types.message):
 
 russian.register_step_russian(dp)
 english.register_step_russian(dp)
-executor.start_polling(dp, skip_updates=True)
+if __name__ == "__main__":
+    executor.start_polling(dp, skip_updates=True)
