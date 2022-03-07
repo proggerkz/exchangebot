@@ -6,26 +6,16 @@ from pymongo import MongoClient
 cluster = MongoClient(db_data)
 ad_db = cluster["ads"]
 ad_collection = ad_db["ads"]
+max_id = ad_db["max_id"]
 moderator_ads = ad_db["moderator_ads"]
 
 
-# Все обьявления определенного города
-# def get_ad(city_name):
-#     ads = ad_collection.find({"city": city_name})
-#     return ads
-
-
 # Одобрение модератором обьявление вывести на общую
-# def change_moderator_ad_to_real(_id):
-#     cur_ad = moderator_ads.find_one({"_id": str(_id)})
-#     if cur_ad is not None:
-#         moderator_ads.delete_one({"_id": str(_id)})
-#         ad_collection.insert_one(cur_ad)
-
-
-# Удаление обьявления с основной
-# def delete_ad(_id):
-    # ad_collection.delete_one({"_id": _id})
+def change_moderator_ad_to_real(_id):
+    cur_ad = moderator_ads.find_one({"_id": str(_id)})
+    if cur_ad is not None:
+        moderator_ads.delete_one({"_id": str(_id)})
+        ad_collection.insert_one(cur_ad)
 
 
 # Получить максимальный ид из всех участников
@@ -40,20 +30,34 @@ def get_max_id_in_collection(collection):
 async def ad_add_moderator(state):
     async with state.proxy() as data:
         d = dict(data)
-        m_list = moderator_ads.find()
-        ad_list = ad_collection.find()
-        m = max(get_max_id_in_collection(m_list), get_max_id_in_collection(ad_list))
-        m += 1
+        m = get_max_id_in_collection(max_id.find()) + 1
         d["_id"] = str(m)
         moderator_ads.insert_one(d)
+        max_id.insert_one({"_id": str(m)})
 
 
-# Удаление обьявления с модераторской
-# def delete_add_moderator(_id):
-#     moderator_ads.delete_one({"_id": str(_id)})
+# Удаление обьявления с основной
+def delete_add_ads(_id):
+    ad_collection.delete_one({"_id": str(_id)})
 
 
 # Обьявление определенного участника
-# def get_user_ads(username):
-#     ads = ad_collection.find({"username": username})
-#     return ads
+def get_user_ads(username):
+    ads = list(ad_collection.find({"username": username}))
+    return ads
+
+
+# Получение обьявления по индексу по городам
+def get_ad_by_city_id(city, city_id):
+    cur_db = list(ad_collection.find({"city": city}))
+    if len(cur_db) == 0:
+        return None
+    else:
+        city_id = city_id % len(cur_db)
+        return cur_db[city_id]
+
+
+# Получение обьявление по ид обьявления
+def get_ad_by_ad_id(ad_id):
+    cur_db = ad_collection.find_one({"_id": str(ad_id)})
+    return cur_db

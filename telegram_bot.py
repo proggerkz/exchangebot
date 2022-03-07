@@ -5,6 +5,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from english import english
 from russian import russian
 from russian import other
+from db import users_db
 import database
 
 
@@ -14,10 +15,12 @@ async def choose_language(message: types.message):
     rus = InlineKeyboardButton(text='Русский', callback_data="rus_lang")
     eng = InlineKeyboardButton(text='English', callback_data="eng_lang")
     markup.add(rus, eng)
-    await bot.send_message(message.from_user.id,
-                           text="Welcome to the our telegram bot, choose the language to start using the bot",
-                           reply_markup=markup)
-
+    if users_db.have_user(message.from_user.username):
+        await russian.menu(message.from_user.id)
+    else:
+        await bot.send_message(message.from_user.id,
+                               text="Welcome to the our telegram bot, choose the language to start using the bot",
+                               reply_markup=markup)
 
 russian.register_step_russian(dp)
 english.register_step_russian(dp)
