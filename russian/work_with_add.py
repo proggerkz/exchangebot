@@ -71,6 +71,8 @@ async def load_description(message: types.Message, state: FSMContext):
 
 
 async def create_markup_and_send_message(el, user_id):
+    print('here i ami am')
+    print(el)
     markup = InlineKeyboardMarkup()
     b1 = InlineKeyboardButton(text=links.nxt_btn, callback_data="next_my_ad " + el.get("_id"))
     b2 = InlineKeyboardButton(text=links.del_btn, callback_data="del_my_ad " + el.get("_id"))

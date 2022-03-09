@@ -46,3 +46,13 @@ def get_my_ad(user_to_id):
             else:
                 return ad
 
+
+# Удаление соединения из БД
+def delete_connection(user_from_id, user_to_id, ad_from_id, ad_to_id):
+    liked_ads.delete_one({
+        "user_from_id": user_from_id,
+        "user_to_id": user_to_id,
+        "ad_from_id": ad_from_id,
+        "ad_to_id": ad_to_id
+    })
+

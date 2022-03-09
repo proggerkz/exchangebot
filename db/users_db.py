@@ -1,8 +1,6 @@
-from config import db_data
-from pymongo import MongoClient
 import database
+from database import cluster
 
-cluster = MongoClient(db_data)
 user_db = cluster["users"]
 user_col = user_db["user_list"]
 
@@ -21,6 +19,7 @@ def have_user(user_id):
 
 # Создание или обновление города проживания участника
 async def create_or_update_user(user_id, user_city):
+    user_city = user_city.upper()
     obj = user_col.find_one({"user_id": user_id})
     if obj is None:
         new_user = {
@@ -35,6 +34,7 @@ async def create_or_update_user(user_id, user_city):
         obj["active"] = True
         obj["user_city"] = user_city
         obj["user_city_id"] = 0
+
         user_col.update_one({"user_id": user_id}, {"$set": obj}, upsert=False)
 
 
