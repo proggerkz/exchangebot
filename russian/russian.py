@@ -107,8 +107,9 @@ def register_step_russian(dp: Dispatcher):
             city = cur_list[j]
             dp.register_message_handler(print_adds_in_cities, text=city)
 
-    dp.register_message_handler(work_with_add.cm_start, text=links.menu_create)
     dp.register_message_handler(go_to_menu, text='Меню')
+    dp.register_message_handler(work_with_add.cm_start, text=links.menu_create)
+    dp.register_message_handler(work_with_add.cancel_handler, text=constants.cancel_text, state='*')
     dp.register_message_handler(work_with_add.load_category, state=FSMAdmin.category)
     dp.register_message_handler(work_with_add.load_photo, content_types=['photo'], state=FSMAdmin.photo)
     dp.register_message_handler(work_with_add.load_name, state=FSMAdmin.name)

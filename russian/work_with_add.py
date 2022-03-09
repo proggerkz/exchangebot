@@ -7,7 +7,8 @@ from db import users_db
 from aiogram.dispatcher.filters.state import State, StatesGroup
 import links
 import database
-from keyboards.category import category_btn
+from keyboards.category import category_btn_with_cancel
+from keyboards.cancel_kb import cancel_kb
 
 
 class FSMAdmin(StatesGroup):
@@ -20,33 +21,42 @@ class FSMAdmin(StatesGroup):
 async def cm_start(message: types.Message):
     if users_db.have_user(message.from_user.id):
         await FSMAdmin.category.set()
-        await message.reply(links.create_add_text, reply_markup=category_btn)
+        await message.reply(links.create_add_text, reply_markup=category_btn_with_cancel)
     else:
         await russian.change_city(message)
 
 
+async def cancel_handler(message: types.Message, state: FSMContext):
+    current_state = await state.get_state()
+    if current_state is None:
+        return
+    await state.finish()
+    await message.reply(constants.success_cancel)
+    await russian.menu(message.from_user.id)
+    
+
 async def load_category(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         if message.text not in links.category:
-            await bot.send_message(message.from_user.id, links.category)
+            await bot.send_message(message.from_user.id, links.choose_right_category)
         else:
             data['category'] = message.text
             await FSMAdmin.next()
-            await message.reply(constants.download_photo)
+            await message.reply(constants.download_photo, reply_markup=cancel_kb)
 
 
 async def load_photo(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['photo'] = message.photo[0].file_id
     await FSMAdmin.next()
-    await message.reply(constants.download_name)
+    await message.reply(constants.download_name, reply_markup=cancel_kb)
 
 
 async def load_name(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['name'] = message.text
     await FSMAdmin.next()
-    await message.reply(constants.download_description)
+    await message.reply(constants.download_description, reply_markup=cancel_kb)
 
 
 async def load_description(message: types.Message, state: FSMContext):
@@ -57,6 +67,7 @@ async def load_description(message: types.Message, state: FSMContext):
     await database.ad_add_moderator(state)
     await message.answer(constants.success_download)
     await state.finish()
+    await russian.menu(message.from_user.id)
 
 
 async def create_markup_and_send_message(el, user_id):
