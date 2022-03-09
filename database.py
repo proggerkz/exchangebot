@@ -42,14 +42,14 @@ def delete_add_ads(_id):
 
 
 # Обьявление определенного участника
-def get_user_ads(username):
-    ads = list(ad_collection.find({"username": username}))
+def get_user_ads(user_id):
+    ads = list(ad_collection.find({"user_id": user_id}))
     return ads
 
 
 # Получение обьявления по индексу по городам
-def get_ad_by_city_id(city, city_id):
-    cur_db = list(ad_collection.find({"city": city}))
+def get_ad_by_city_id(city, city_id, category):
+    cur_db = list(ad_collection.find({"city": city, "category": category}))
     if len(cur_db) == 0:
         return None
     else:
@@ -61,3 +61,11 @@ def get_ad_by_city_id(city, city_id):
 def get_ad_by_ad_id(ad_id):
     cur_db = ad_collection.find_one({"_id": str(ad_id)})
     return cur_db
+
+
+# Получение обьявление из модераторов
+def get_moderator_ad():
+    ad = moderator_ads.find_one()
+    return ad
+
+

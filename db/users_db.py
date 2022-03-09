@@ -45,11 +45,11 @@ def get_city_of_user(user_id):
 
 
 # Получиение по юзернейму следующего обьявления для определенного участника
-def get_next(user_id):
+def get_next(user_id, category_id):
     obj = user_col.find_one({"user_id": user_id})
     obj["user_city_id"] += 1
     user_col.update_one({"user_id": user_id}, {"$set": obj}, upsert=False)
-    ad = database.get_ad_by_city_id(obj["user_city"], obj["user_city_id"])
+    ad = database.get_ad_by_city_id(obj["user_city"], obj["user_city_id"], category_id)
     return ad
 
 

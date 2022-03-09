@@ -1,5 +1,5 @@
 from aiogram import types
-from russian import russian
+from russian import russian, constants
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.dispatcher import FSMContext
 from create_bot import bot
@@ -7,9 +7,11 @@ from db import users_db
 from aiogram.dispatcher.filters.state import State, StatesGroup
 import links
 import database
+from keyboards.category import category_btn
 
 
 class FSMAdmin(StatesGroup):
+    category = State()
     photo = State()
     name = State()
     description = State()
@@ -17,24 +19,34 @@ class FSMAdmin(StatesGroup):
 
 async def cm_start(message: types.Message):
     if users_db.have_user(message.from_user.id):
-        await FSMAdmin.photo.set()
-        await message.reply(links.create_add_text)
+        await FSMAdmin.category.set()
+        await message.reply(links.create_add_text, reply_markup=category_btn)
     else:
         await russian.change_city(message)
+
+
+async def load_category(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        if message.text not in links.category:
+            await bot.send_message(message.from_user.id, links.category)
+        else:
+            data['category'] = message.text
+            await FSMAdmin.next()
+            await message.reply(constants.download_photo)
 
 
 async def load_photo(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['photo'] = message.photo[0].file_id
     await FSMAdmin.next()
-    await message.reply('Теперь введите название игрушки')
+    await message.reply(constants.download_name)
 
 
 async def load_name(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['name'] = message.text
     await FSMAdmin.next()
-    await message.reply('Теперь опишите свои игрушку и свои предпочтения')
+    await message.reply(constants.download_description)
 
 
 async def load_description(message: types.Message, state: FSMContext):
@@ -43,8 +55,7 @@ async def load_description(message: types.Message, state: FSMContext):
         data['user_id'] = message.from_user.id
         data['city'] = users_db.get_city_of_user(message.from_user.id)
     await database.ad_add_moderator(state)
-    await message.answer('Ваше обьявление было успешно загружено. '
-                         'Подождите пока один из модераторов проверит его и опубликует')
+    await message.answer(constants.success_download)
     await state.finish()
 
 
@@ -63,7 +74,7 @@ async def create_markup_and_send_message(el, user_id):
 
 async def my_adds(message: types.Message):
     if users_db.have_user(message.from_user.id):
-        cur_db = database.get_user_ads(message.from_user.username)
+        cur_db = database.get_user_ads(message.from_user.id)
         if len(cur_db) == 0:
             await bot.send_message(message.from_user.id, links.no_add_text)
         else:
@@ -74,7 +85,7 @@ async def my_adds(message: types.Message):
 
 async def next_my_add(callback: types.CallbackQuery):
     t = callback.data.split(' ')
-    cur_db = database.get_user_ads(callback.from_user.username)
+    cur_db = database.get_user_ads(callback.from_user.id)
     last_id = int(t[1])
     id_of_last = -1
     for i in range(len(cur_db)):
@@ -91,7 +102,7 @@ async def next_my_add(callback: types.CallbackQuery):
 
 async def del_my_add(callback: types.CallbackQuery):
     t = callback.data.split(' ')
-    cur_db = database.get_user_ads(callback.from_user.username)
+    cur_db = database.get_user_ads(callback.from_user.id)
     id_of_last = -1
     for i in range(len(cur_db)):
         if int(cur_db[i].get("_id")) == int(t[1]):
