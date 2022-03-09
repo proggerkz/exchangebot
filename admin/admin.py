@@ -5,6 +5,7 @@ from create_bot import bot
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 import config
 import database
+from db import users_db
 from admin import constants
 
 
@@ -37,6 +38,12 @@ async def delete_moderator(callback: types.CallbackQuery):
         await callback.answer(constants.not_moderator)
 
 
+async def stats(message: types.Message):
+    if message.from_user.username in config.moderators_username:
+       await bot.send_message(message.from_user.id, constants.users_text +
+                              str(users_db.active_users()))
+
+
 async def approve_moderator(callback: types.CallbackQuery):
     if callback.from_user.username in config.moderators_username:
         _id = callback.data.split(' ')[1]
@@ -52,5 +59,6 @@ async def approve_moderator(callback: types.CallbackQuery):
 
 def register_step_admin(dp: Dispatcher):
     dp.register_message_handler(moderator, commands=['moderator', 'admin'])
+    dp.register_message_handler(stats, commands=['stats'])
     dp.register_callback_query_handler(delete_moderator, Text(startswith='mod_del'))
     dp.register_callback_query_handler(approve_moderator, Text(startswith='mod_ok'))

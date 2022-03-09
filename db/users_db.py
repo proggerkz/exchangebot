@@ -59,3 +59,8 @@ def make_passive(user_id):
     obj["active"] = False
     user_col.update_one({"user_id": user_id}, {"$set": obj}, upsert=False)
 
+
+# Количество активных юзеров
+def active_users():
+    obj = user_col.find({"active": True})
+    return len(list(obj))
