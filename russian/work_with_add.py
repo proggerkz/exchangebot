@@ -9,6 +9,7 @@ import links
 import database
 from keyboards.category import category_btn_with_cancel
 from keyboards.cancel_kb import cancel_kb
+from keyboards.rus_menu_kb import rus_menu_kb_button
 
 
 class FSMAdmin(StatesGroup):
@@ -65,9 +66,8 @@ async def load_description(message: types.Message, state: FSMContext):
         data['user_id'] = message.from_user.id
         data['city'] = users_db.get_city_of_user(message.from_user.id)
     await database.ad_add_moderator(state)
-    await message.answer(constants.success_download)
+    await message.answer(constants.success_download, reply_markup=rus_menu_kb_button)
     await state.finish()
-    await russian.menu(message.from_user.id)
 
 
 async def create_markup_and_send_message(el, user_id):

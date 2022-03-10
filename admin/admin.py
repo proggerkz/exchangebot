@@ -21,7 +21,9 @@ async def moderator(message: types.Message):
             markup.add(b1, b2)
             await bot.send_photo(message.from_user.id,
                                  moderator_ad.get('photo'),
-                                 f'{moderator_ad.get("name")}\nОписание: {moderator_ad.get("description")}',
+                                 f'Название: {moderator_ad.get("name")}\n'
+                                 f'Категория: {moderator_ad.get("category")}'
+                                 f'Описание: {moderator_ad.get("description")}',
                                  reply_markup=markup)
 
 

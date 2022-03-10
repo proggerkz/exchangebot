@@ -14,10 +14,15 @@ async def choose_language(message: types.Message):
         await russian.change_city(message)
 
 
+async def help_command(message: types.Message):
+    await bot.send_message(message.from_user.id, links.help_text)
+
+
 async def message_filter(message: types.Message):
     await bot.send_message(message.from_user.id, constants.wrong_name)
 
 
 def check_text(dp: Dispatcher):
     dp.register_message_handler(choose_language, commands=['start'])
+    dp.register_message_handler(help_command, commands=["help"])
     dp.register_message_handler(message_filter)

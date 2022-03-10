@@ -3,7 +3,8 @@ from aiogram.dispatcher.filters import Text
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 import database
 import links
-from create_bot import bot
+from cities import cities
+from create_bot import bot, dp
 from db import users_db
 from keyboards.category import category_with_menu_btn
 from keyboards.rus_menu_kb import rus_menu_kb_button
