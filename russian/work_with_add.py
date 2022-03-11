@@ -1,6 +1,6 @@
 from aiogram import types
 from russian import russian, constants
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton
 from aiogram.dispatcher import FSMContext
 from create_bot import bot
 from db import users_db
@@ -28,13 +28,22 @@ async def cm_start(message: types.Message):
 
 
 async def cancel_handler(message: types.Message, state: FSMContext):
-    current_state = await state.get_state()
-    if current_state is None:
-        return
-    await state.finish()
-    await message.reply(constants.success_cancel)
-    await russian.menu(message.from_user.id)
-    
+    if users_db.have_user(message.from_user.id):
+        current_state = await state.get_state()
+        if current_state is None:
+            return
+        await state.finish()
+        await message.reply(constants.success_cancel)
+        await russian.menu(message.from_user.id)
+    else:
+        markup = ReplyKeyboardMarkup(resize_keyboard=True)
+        button = KeyboardButton(text=links.menu_change_city)
+        markup.add(button)
+        await state.finish()
+        await bot.send_message(message.from_user.id,
+                               constants.to_use_text,
+                               reply_markup=markup)
+
 
 async def load_category(message: types.Message, state: FSMContext):
     async with state.proxy() as data:

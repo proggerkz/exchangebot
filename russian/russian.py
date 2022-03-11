@@ -120,4 +120,3 @@ def register_step_russian(dp: Dispatcher):
         dp.register_message_handler(chosen_category, text=links.category[i])
     dp.register_callback_query_handler(next_ad, Text(startswith='nxt_ad'))
     dp.register_callback_query_handler(like_ad, Text(startswith='like_ad'))
-    dp.register_message_handler(change_city, text=links.menu_change_city)

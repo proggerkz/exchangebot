@@ -12,4 +12,3 @@ for i in range(535):
             continue
         print("\"" + city + "(" + region + ")\",")
 fileObj.close()
-

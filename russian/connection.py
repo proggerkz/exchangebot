@@ -80,7 +80,7 @@ async def my_liked_contact(message: types.Message):
                          f'Название: {ad_from.get("name")}\n'
                          f'Категория: {ad_from.get("category")}\n'
                          f'Описание: {ad_from.get("description")}\n'
-                         f'Если понравилась вы тоже хотите обменять я дам его контакты',
+                         f'Если вам тоже понравилась игра и хотите обменять то я могу дать контакты хозяина',
                          reply_markup=markup)
 
 
