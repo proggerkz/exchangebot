@@ -72,7 +72,9 @@ async def choose_language(message: types.Message):
     if users_db.have_user(message.from_user.id):
         await russian.menu(message.from_user.id)
     else:
-        await bot.send_message(message.from_user.id, text=links.welcome_text, parse_mode='Markdown')
+        await bot.send_message(message.from_user.id,
+                               text=links.welcome_text,
+                               parse_mode='Markdown')
         await city_start(message)
 
 

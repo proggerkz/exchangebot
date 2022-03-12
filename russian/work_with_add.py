@@ -135,3 +135,5 @@ async def del_my_add(callback: types.CallbackQuery):
     else:
         database.delete_add_ads(t[1])
         await callback.answer(links.success_delete)
+
+

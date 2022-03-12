@@ -1,14 +1,15 @@
 import database
 import links
+from russian import other
 from keyboards.rus_menu_kb import rus_menu_kb_button
 from db import users_db
 from db import liked_ads
 from aiogram.dispatcher import Dispatcher
 from russian import constants
-from create_bot import bot, dp
+from create_bot import bot
 from aiogram import types
 from aiogram.dispatcher.filters import Text
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 
 async def make_connection(user_from_id, user_to_id, ad_id, page, username):
@@ -31,7 +32,6 @@ async def make_connection(user_from_id, user_to_id, ad_id, page, username):
 
 
 async def chosen_ad_exchange(callback: types.CallbackQuery):
-    print("I am here")
     call_data = callback.data.split(' ')
     user_from_id = callback.from_user.id
     user_to_id = int(call_data[1])
@@ -48,40 +48,47 @@ async def chosen_ad_exchange(callback: types.CallbackQuery):
         await callback.answer(constants.already_liked)
     else:
         liked_ads.create_data(user_from_id, user_to_id, ad_from_id, ad_to_id, username_from)
-        markup = ReplyKeyboardMarkup(resize_keyboard=True)
-        button1 = KeyboardButton(constants.wanna_see)
-        button2 = KeyboardButton(constants.menu_text)
-        markup.add(button1, button2)
-        try:
-            await bot.send_message(user_to_id,
-                                   constants.liked_text,
-                                   reply_markup=markup)
-            await callback.answer()
-        except:
-            users_db.make_passive(user_to_id)
-            await callback.answer('Человек в настоящее время не активный')
+        await callback.answer('Участнику отправлено запрос об обмене')
+        # markup = ReplyKeyboardMarkup(resize_keyboard=True)
+        # button1 = KeyboardButton(constants.wanna_see)
+        # button2 = KeyboardButton(constants.menu_text)
+        # markup.add(button1, button2)
+        # try:
+        #     await bot.send_message(user_to_id,
+        #                            constants.liked_text,
+        #                            reply_markup=markup)
+        #     await callback.answer()
+        # except:
+        #     users_db.make_passive(user_to_id)
+        #     await callback.answer('К сожалению участник в настоящее время не активный')
 
 
 async def my_liked_contact(message: types.Message):
-    connect = liked_ads.get_my_ad(message.from_user.id)
-    ad_from = database.get_ad_by_ad_id(connect.get('ad_from_id'))
-    ad_to = database.get_ad_by_ad_id(connect.get('ad_to_id'))
-    markup = InlineKeyboardMarkup()
-    text = str(connect.get('user_from_id')) + ' ' + str(connect.get('user_to_id')) + ' ' \
-           + str(connect.get('ad_from_id')) + ' ' + str(connect.get('ad_to_id')) + ' ' + str(connect.get('username'))
-    b1 = InlineKeyboardButton('Я согласен', callback_data=f'accept 1 {text}')
-    b2 = InlineKeyboardButton('Я не согласен', callback_data=f'accept -1 {text}')
-    markup.add(b1, b2)
-    await bot.send_photo(message.from_user.id,
-                         ad_from.get('photo'),
-                         f'Один из участников хочет поменять игру на вашу игру\n '
-                         f'{ad_to.get("name")}\n\n'
-                         f'Данные его игрушки:\n '
-                         f'Название: {ad_from.get("name")}\n'
-                         f'Категория: {ad_from.get("category")}\n'
-                         f'Описание: {ad_from.get("description")}\n'
-                         f'Если вам тоже понравилась игра и хотите обменять то я могу дать контакты хозяина',
-                         reply_markup=markup)
+    if users_db.have_user(message.from_user.id):
+        connect = liked_ads.get_my_ad(message.from_user.id)
+        if connect is None:
+            await bot.send_message(message.from_user.id, constants.no_liked_text)
+        else:
+            ad_from = database.get_ad_by_ad_id(connect.get('ad_from_id'))
+            ad_to = database.get_ad_by_ad_id(connect.get('ad_to_id'))
+            markup = InlineKeyboardMarkup()
+            text = str(connect.get('user_from_id')) + ' ' + str(connect.get('user_to_id')) + ' ' \
+                   + str(connect.get('ad_from_id')) + ' ' + str(connect.get('ad_to_id')) + ' ' + str(connect.get('username'))
+            b1 = InlineKeyboardButton('Я согласен', callback_data=f'accept 1 {text}')
+            b2 = InlineKeyboardButton('Я не согласен', callback_data=f'accept -1 {text}')
+            markup.add(b1, b2)
+            await bot.send_photo(message.from_user.id,
+                                 ad_from.get('photo'),
+                                 f'Один из участников хочет поменять игру на вашу игру\n '
+                                 f'{ad_to.get("name")}\n\n'
+                                 f'Данные его игрушки:\n '
+                                 f'Название: {ad_from.get("name")}\n'
+                                 f'Категория: {ad_from.get("category")}\n'
+                                 f'Описание: {ad_from.get("description")}\n'
+                                 f'Если вам тоже понравилась игра и хотите обменять то я могу дать контакты хозяина',
+                                 reply_markup=markup)
+    else:
+        await other.city_start(message)
 
 
 async def acceptance(callback: types.CallbackQuery):
@@ -104,9 +111,9 @@ async def acceptance(callback: types.CallbackQuery):
         else:
             if acc == "-1":
                 liked_ads.delete_connection(int(user_from_id),
-                                                  int(user_to_id),
-                                                  int(ad_from_id),
-                                                  int(ad_to_id))
+                                            int(user_to_id),
+                                            int(ad_from_id),
+                                            int(ad_to_id))
                 await callback.answer()
                 await my_liked_contact(callback)
             else:
@@ -117,12 +124,14 @@ async def acceptance(callback: types.CallbackQuery):
                                      f'Название: {ad_to.get("name")}\n'
                                      f'Категория: {ad_to.get("category")}\n'
                                      f'Описание: {ad_to.get("description")}\n')
-                await bot.send_message(callback.from_user.id, 'Отправьте сообщение выше участнику по нику: @' + username,
+                await bot.send_message(callback.from_user.id,
+                                       'Отправьте сообщение выше участнику по нику: @' + username,
                                        reply_markup=rus_menu_kb_button)
 
 
 def register_next_connection(dp: Dispatcher):
     dp.register_callback_query_handler(chosen_ad_exchange, Text(startswith='exc_us'))
     dp.register_message_handler(my_liked_contact, text=constants.wanna_see)
+    dp.register_message_handler(my_liked_contact, text=links.menu_my_liked)
     dp.register_callback_query_handler(acceptance, Text(startswith='accept'))
 
