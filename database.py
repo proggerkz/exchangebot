@@ -1,6 +1,5 @@
 from config import db_data
 from pymongo import MongoClient
-# import gridfs
 
 
 cluster = MongoClient(db_data)
@@ -67,3 +66,5 @@ def get_ad_by_ad_id(ad_id):
 def get_moderator_ad():
     ad = moderator_ads.find_one()
     return ad
+
+

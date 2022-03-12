@@ -1,3 +1,4 @@
+from russian import constants
 menu_exchange = '\U0001F50E Обмен игрушками'
 menu_profile = '\U0001f464 Профиль'
 menu_my_liked = '\U0001F4D1 Запросы'

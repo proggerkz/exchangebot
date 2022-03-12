@@ -57,6 +57,7 @@ async def load_category(message: types.Message, state: FSMContext):
 
 async def load_photo(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
+        print(message.photo[0])
         data['photo'] = message.photo[0].file_id
     await FSMAdmin.next()
     await message.reply(constants.download_name, reply_markup=cancel_kb)
@@ -80,8 +81,6 @@ async def load_description(message: types.Message, state: FSMContext):
 
 
 async def create_markup_and_send_message(el, user_id):
-    print('here i ami am')
-    print(el)
     markup = InlineKeyboardMarkup()
     b1 = InlineKeyboardButton(text=links.nxt_btn, callback_data="next_my_ad " + el.get("_id"))
     b2 = InlineKeyboardButton(text=links.del_btn, callback_data="del_my_ad " + el.get("_id"))

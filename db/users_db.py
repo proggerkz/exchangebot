@@ -27,7 +27,8 @@ async def create_or_update_user(user_id, user_city):
             "user_city": user_city,
             "user_city_id": 0,
             "active": True,
-            "user_lang": 'rus'
+            "user_lang": 'rus',
+            "is_premium": False
         }
         user_col.insert_one(new_user)
     else:
@@ -64,3 +65,10 @@ def make_passive(user_id):
 def active_users():
     obj = user_col.find({"active": True})
     return len(list(obj))
+
+
+def get_is_premium(user_id):
+    obj = user_col.find_one({
+        "user_id": user_id
+    })
+    return obj.get('is_premium')

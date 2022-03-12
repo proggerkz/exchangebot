@@ -49,18 +49,7 @@ async def chosen_ad_exchange(callback: types.CallbackQuery):
     else:
         liked_ads.create_data(user_from_id, user_to_id, ad_from_id, ad_to_id, username_from)
         await callback.answer('Участнику отправлено запрос об обмене')
-        # markup = ReplyKeyboardMarkup(resize_keyboard=True)
-        # button1 = KeyboardButton(constants.wanna_see)
-        # button2 = KeyboardButton(constants.menu_text)
-        # markup.add(button1, button2)
-        # try:
-        #     await bot.send_message(user_to_id,
-        #                            constants.liked_text,
-        #                            reply_markup=markup)
-        #     await callback.answer()
-        # except:
-        #     users_db.make_passive(user_to_id)
-        #     await callback.answer('К сожалению участник в настоящее время не активный')
+
 
 
 async def my_liked_contact(message: types.Message):
@@ -77,16 +66,18 @@ async def my_liked_contact(message: types.Message):
             b1 = InlineKeyboardButton('Я согласен', callback_data=f'accept 1 {text}')
             b2 = InlineKeyboardButton('Я не согласен', callback_data=f'accept -1 {text}')
             markup.add(b1, b2)
-            await bot.send_photo(message.from_user.id,
-                                 ad_from.get('photo'),
-                                 f'Один из участников хочет поменять игру на вашу игру\n '
-                                 f'{ad_to.get("name")}\n\n'
-                                 f'Данные его игрушки:\n '
-                                 f'Название: {ad_from.get("name")}\n'
-                                 f'Категория: {ad_from.get("category")}\n'
-                                 f'Описание: {ad_from.get("description")}\n'
-                                 f'Если вам тоже понравилась игра и хотите обменять то я могу дать контакты хозяина',
-                                 reply_markup=markup)
+            await bot.send_photo(
+                message.from_user.id,
+                ad_from.get('photo'),
+                f'Один из участников хочет поменять игру на вашу игру\n '
+                f'{ad_to.get("name")}\n\n'
+                f'Данные его игрушки:\n '
+                f'Название: {ad_from.get("name")}\n'
+                f'Категория: {ad_from.get("category")}\n'
+                f'Описание: {ad_from.get("description")}\n'
+                f'Если вам тоже понравилась игра и хотите обменять то я могу дать контакты хозяина',
+                reply_markup=markup
+            )
     else:
         await other.city_start(message)
 
@@ -110,10 +101,12 @@ async def acceptance(callback: types.CallbackQuery):
             await callback.answer(constants.deleted_myself)
         else:
             if acc == "-1":
-                liked_ads.delete_connection(int(user_from_id),
-                                            int(user_to_id),
-                                            int(ad_from_id),
-                                            int(ad_to_id))
+                liked_ads.delete_connection(
+                    int(user_from_id),
+                    int(user_to_id),
+                    int(ad_from_id),
+                    int(ad_to_id)
+                )
                 await callback.answer()
                 await my_liked_contact(callback)
             else:
