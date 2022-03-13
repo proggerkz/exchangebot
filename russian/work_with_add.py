@@ -31,6 +31,7 @@ async def cancel_handler(message: types.Message, state: FSMContext):
     if users_db.have_user(message.from_user.id):
         current_state = await state.get_state()
         if current_state is None:
+            await russian.menu(message.from_user.id)
             return
         await state.finish()
         await message.reply(constants.success_cancel)

@@ -24,8 +24,8 @@ async def moderator(message: types.Message):
             await bot.send_photo(message.from_user.id,
                                  moderator_ad.get('photo'),
                                  f'Название: {moderator_ad.get("name")}\n'
-                                 f'Категория: {moderator_ad.get("category")}'
-                                 f'Описание: {moderator_ad.get("description")}',
+                                 f'Категория: {moderator_ad.get("category")}\n'
+                                 f'Описание: {moderator_ad.get("description")}\n',
                                  reply_markup=markup)
 
 
@@ -44,8 +44,10 @@ async def delete_moderator(callback: types.CallbackQuery):
 
 async def stats(message: types.Message):
     if message.from_user.username in config.moderators_username:
-       await bot.send_message(message.from_user.id, constants.users_text +
-                              str(users_db.active_users()))
+        await bot.send_message(
+            message.from_user.id, constants.users_text +
+            str(users_db.active_users())
+        )
 
 
 async def approve_moderator(callback: types.CallbackQuery):
@@ -63,7 +65,7 @@ async def approve_moderator(callback: types.CallbackQuery):
 
 async def check_requests(message: types.Message):
     if message.from_user.username in config.moderators_username:
-        active_users = users_db.active_users()
+        active_users = users_db.users_all()
         i = 0
         while i < len(active_users):
             time.sleep(1)
@@ -79,11 +81,11 @@ async def check_requests(message: types.Message):
                 if ad is not None:
                     try:
                         await bot.send_message(
-                            message.from_user.id,
+                            user_id,
                             rus_constants.liked_text,
                             reply_markup=markup)
                     except:
-                        users_db.make_passive(message.from_user.id)
+                        users_db.make_passive(user_id)
             i = i + 100
 
 

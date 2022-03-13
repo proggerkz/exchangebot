@@ -44,7 +44,8 @@ async def city_name(message: types.Message, state: FSMContext):
     city_list = []
     for i in range(len(cities)):
         cur_city = cities[i]
-        dist = lcs(cur_city, city)
+        name_city = str(cur_city.split('(')[0])
+        dist = lcs(name_city, city)
         st = [dist, cur_city, i]
         city_list.append(st)
 
@@ -79,7 +80,11 @@ async def choose_language(message: types.Message):
 
 
 async def help_command(message: types.Message):
-    await bot.send_message(message.from_user.id, links.help_text)
+    await bot.send_message(
+        message.from_user.id,
+        links.help_text,
+        parse_mode='Markdown'
+    )
 
 
 async def message_filter(message: types.Message):
@@ -90,8 +95,9 @@ def check_text(dp: Dispatcher):
     dp.register_message_handler(choose_language, commands=['start'])
     dp.register_message_handler(city_start, text=links.menu_change_city)
     dp.register_message_handler(city_name, state=CityOfUser.city)
-    dp.register_callback_query_handler(city_call_change,
-                                       Text(startswith='ct'),
-                                       state=CityOfUser.city)
+    dp.register_callback_query_handler(
+        city_call_change,
+        Text(startswith='ct'),
+        state=CityOfUser.city)
     dp.register_message_handler(help_command, commands=["help"])
     dp.register_message_handler(message_filter)

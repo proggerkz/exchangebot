@@ -1,5 +1,6 @@
 import database
 import links
+from db import rated
 from russian import other
 from keyboards.rus_menu_kb import rus_menu_kb_button
 from db import users_db
@@ -23,7 +24,8 @@ async def make_connection(user_from_id, user_to_id, ad_id, page, username):
             cur_id = page * 5
             markup = InlineKeyboardMarkup()
             for i in range(min(cur_id + 5, len(ads_of_user))):
-                call_data = 'exc_us ' + str(user_to_id) + ' ' + str(ad_id) + ' ' + ads_of_user[i].get("_id") + ' ' + username
+                call_data = 'exc_us ' + str(user_to_id) + ' ' + str(ad_id) + ' ' + ads_of_user[i].get(
+                    "_id") + ' ' + username
                 print(call_data)
                 button = InlineKeyboardButton(text=ads_of_user[i].get('name'), callback_data=call_data)
                 markup.add(button)
@@ -51,7 +53,6 @@ async def chosen_ad_exchange(callback: types.CallbackQuery):
         await callback.answer('Участнику отправлено запрос об обмене')
 
 
-
 async def my_liked_contact(message: types.Message):
     if users_db.have_user(message.from_user.id):
         connect = liked_ads.get_my_ad(message.from_user.id)
@@ -62,7 +63,8 @@ async def my_liked_contact(message: types.Message):
             ad_to = database.get_ad_by_ad_id(connect.get('ad_to_id'))
             markup = InlineKeyboardMarkup()
             text = str(connect.get('user_from_id')) + ' ' + str(connect.get('user_to_id')) + ' ' \
-                   + str(connect.get('ad_from_id')) + ' ' + str(connect.get('ad_to_id')) + ' ' + str(connect.get('username'))
+                   + str(connect.get('ad_from_id')) + ' ' + str(connect.get('ad_to_id')) + ' ' + str(
+                connect.get('username'))
             b1 = InlineKeyboardButton('Я согласен', callback_data=f'accept 1 {text}')
             b2 = InlineKeyboardButton('Я не согласен', callback_data=f'accept -1 {text}')
             markup.add(b1, b2)
@@ -78,6 +80,7 @@ async def my_liked_contact(message: types.Message):
                 f'Если вам тоже понравилась игра и хотите обменять то я могу дать контакты хозяина',
                 reply_markup=markup
             )
+
     else:
         await other.city_start(message)
 
@@ -121,10 +124,37 @@ async def acceptance(callback: types.CallbackQuery):
                                        'Отправьте сообщение выше участнику по нику: @' + username,
                                        reply_markup=rus_menu_kb_button)
 
+                if not rated.have_connection(callback.from_user.id, user_from_id):
+                    mrk = InlineKeyboardMarkup(row_width=5)
+                    for i in range(5):
+                        btn = InlineKeyboardButton(
+                            text=str(i + 1),
+                            callback_data='rate ' + str(i) + ' ' + ' ' + str(user_from_id) + ' ' + str(user_to_id)
+                        )
+                        mrk.add(btn)
+                    await bot.send_message(
+                        callback.from_user.id,
+                        'Если вы уже встретились и обменяли свои игрушки вы можете оценить участника по состоянию '
+                        'игрушки'
+                        'и по обращению обладателем игрушки для обмена',
+                        reply_markup=mrk
+                    )
+
+
+async def rate_user(callback: types.CallbackQuery):
+    lst = callback.data.split(' ')
+    rating = int(lst[1])
+    user_from = int(lst[2])
+    user_to = int(lst[3])
+    if rated.have_connection(user_from, user_to):
+        await callback.answer('Вы оценили этого участника раньше')
+    else:
+        rated.change_rating(user_from, user_to, rating)
+
 
 def register_next_connection(dp: Dispatcher):
     dp.register_callback_query_handler(chosen_ad_exchange, Text(startswith='exc_us'))
     dp.register_message_handler(my_liked_contact, text=constants.wanna_see)
     dp.register_message_handler(my_liked_contact, text=links.menu_my_liked)
     dp.register_callback_query_handler(acceptance, Text(startswith='accept'))
-
+    dp.register_callback_query_handler(rate_user, Text(startswith='rate'))
