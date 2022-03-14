@@ -82,11 +82,11 @@ def active_users():
 
 # Получить реитинг участника
 def get_rating(user_id):
-    obj = user_col.find({
+    obj = user_col.find_one({
         "user_id": user_id
     })
-    rate_cnt = obj.get("rating").get("cnt")
-    rate_amount = obj.get("rating").get("amount")
+    rate_cnt = obj.get("rating", {}).get("cnt")
+    rate_amount = obj.get("rating", {}).get("amount")
     if rate_cnt == 0:
         return 0
     else:
