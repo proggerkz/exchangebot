@@ -67,7 +67,7 @@ async def work_with_data(user_id, category_id):
                              ad.get("photo"),
                              f'\U0001f464 *Название*: {ad.get("name")}\n'
                              f'\U0001F4C2 *Описание*: {ad.get("description")}\n'
-                             f'\U00002B50 *Категория*: {ad.get("category")}\n'
+                             f'\U0001F4D1 *Категория*: {ad.get("category")}\n'
                              f'\U00002B50 *Рейтинг пользователя*: {users_db.get_rating(ad.get("user_id"))}',
                              reply_markup=markup,
                              parse_mode='Markdown'
