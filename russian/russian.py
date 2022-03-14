@@ -65,9 +65,13 @@ async def work_with_data(user_id, category_id):
         markup.add(b1, b2)
         await bot.send_photo(user_id,
                              ad.get("photo"),
-                             f'{ad.get("name")}\n'
-                             f'Описание: {ad.get("description")}',
-                             reply_markup=markup)
+                             f'*Название*: {ad.get("name")}\n'
+                             f'*Описание*: {ad.get("description")}\n'
+                             f'*Категория*: {ad.get("category")}\n'
+                             f'*Рейтинг пользователя*: {users_db.get_rating(ad.get("user_id"))}',
+                             reply_markup=markup,
+                             parse_mode='Markdown'
+                             )
 
 
 async def next_ad(callback: types.CallbackQuery):

@@ -89,8 +89,12 @@ async def create_markup_and_send_message(el, user_id):
     await bot.send_photo(
         user_id,
         el.get("photo"),
-        f'{el.get("name")}\nОписание игрушки: {el.get("description")}',
-        reply_markup=markup
+        f'*Название*: {el.get("name")}\n'
+        f'*Описание*: {el.get("description")}\n'
+        f'*Категория*: {el.get("category")}\n'
+        f'*Рейтинг пользователя*: {users_db.get_rating(el.get("user_id"))}',
+        reply_markup=markup,
+        parse_mode='Markdown'
     )
 
 

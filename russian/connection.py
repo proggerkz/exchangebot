@@ -111,15 +111,15 @@ async def acceptance(callback: types.CallbackQuery):
                     int(ad_to_id)
                 )
                 await callback.answer()
-                await my_liked_contact(callback)
-            else:
                 await bot.send_photo(callback.from_user.id,
                                      ad_to.get('photo'),
                                      f'Я хочу обменять мою игру на вашу игру которую вы раньше лайкнули под названием: '
                                      f'{ad_from.get("name")}\n\n'
-                                     f'Название: {ad_to.get("name")}\n'
-                                     f'Категория: {ad_to.get("category")}\n'
-                                     f'Описание: {ad_to.get("description")}\n')
+                                     f'*Название*: {ad_to.get("name")}\n'
+                                     f'*Категория*: {ad_to.get("category")}\n'
+                                     f'*Описание*: {ad_to.get("description")}\n')
+                await my_liked_contact(callback)
+            else:
                 await bot.send_message(callback.from_user.id,
                                        'Отправьте сообщение выше участнику по нику: @' + username,
                                        reply_markup=rus_menu_kb_button)
