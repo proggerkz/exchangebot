@@ -14,11 +14,11 @@ import database
 #                              upsert=False
 #     )
 
-from db import liked_ads
-
-
-def add_connection(user_from_id, user_to_id, ad_from_id, ad_to_id, username):
-    liked_ads.create_data(user_from_id, user_to_id, ad_from_id, ad_to_id, username)
-
-
-add_connection(609616860, 405696444, 49, 51, "dias0x1B")
+# from db import liked_ads
+#
+#
+# def add_connection(user_from_id, user_to_id, ad_from_id, ad_to_id, username):
+#     liked_ads.create_data(user_from_id, user_to_id, ad_from_id, ad_to_id, username)
+#
+#
+# add_connection(609616860, 405696444, 49, 51, "dias0x1B")
