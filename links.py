@@ -1,4 +1,7 @@
 from russian import constants
+menu_create = '\U0001F195 Создать обьявление'
+menu_my_ads = '\U0001F4C2 Мои обьявления'
+menu_change_city = '\U0001F3E0 Поменять город'
 menu_exchange = '\U0001F50E Обмен игрушками'
 menu_profile = '\U0001f464 Профиль'
 menu_my_liked = '\U0001F4D1 Запросы'
@@ -21,9 +24,6 @@ help_text = """
 3. Можно поставить рейтинг другим участникам
 
 """
-menu_create = '\U0001F195 Создать обьявление'
-menu_my_ads = '\U0001F4C2 Мои обьявления'
-menu_change_city = '\U0001F3E0 Поменять город'
 choose_category_text = 'Пожалуйста выберите категорию игры:'
 welcome_text = """\U0001F525 Добро пожаловать в наш телеграм бот! \U0001F525
 

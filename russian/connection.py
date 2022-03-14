@@ -104,6 +104,16 @@ async def acceptance(callback: types.CallbackQuery):
             await callback.answer(constants.deleted_myself)
         else:
             if acc == "-1":
+                await bot.send_photo(callback.from_user.id,
+                                     ad_to.get('photo'),
+                                     f'Я хочу обменять мою игру на вашу игру которую вы раньше лайкнули под названием: '
+                                     f'{ad_from.get("name")}\n\n'
+                                     f'\U0001f464 *Название*: {ad_to.get("name")}\n'
+                                     f'\U0001F4C2 *Описание*: {ad_to.get("description")}\n'
+                                     f'\U00002B50 *Категория*: {ad_to.get("category")}\n'
+                                     f'\U00002B50 *Мой рейтинг: {users_db.get_rating(callback.from_user.id)}\n',
+                                     parse_mode='Markdown'
+                                     )
                 liked_ads.delete_connection(
                     int(user_from_id),
                     int(user_to_id),
@@ -111,13 +121,6 @@ async def acceptance(callback: types.CallbackQuery):
                     int(ad_to_id)
                 )
                 await callback.answer()
-                await bot.send_photo(callback.from_user.id,
-                                     ad_to.get('photo'),
-                                     f'Я хочу обменять мою игру на вашу игру которую вы раньше лайкнули под названием: '
-                                     f'{ad_from.get("name")}\n\n'
-                                     f'*Название*: {ad_to.get("name")}\n'
-                                     f'*Категория*: {ad_to.get("category")}\n'
-                                     f'*Описание*: {ad_to.get("description")}\n')
                 await my_liked_contact(callback)
             else:
                 await bot.send_message(callback.from_user.id,

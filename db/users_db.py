@@ -90,7 +90,7 @@ def get_rating(user_id):
     if rate_cnt == 0:
         return 0
     else:
-        return rate_cnt / rate_amount
+        return rate_amount / rate_cnt
 
 
 # Все активные юзера
