@@ -127,14 +127,14 @@ async def acceptance(callback: types.CallbackQuery):
                                        'Отправьте сообщение выше участнику по нику: @' + username,
                                        reply_markup=rus_menu_kb_button)
 
-                if not rated.have_connection(callback.from_user.id, user_from_id):
+                if rated.have_connection(callback.from_user.id, user_from_id) is None:
                     mrk = InlineKeyboardMarkup(row_width=5)
                     for i in range(5):
                         btn = InlineKeyboardButton(
                             text=str(i + 1),
-                            callback_data='rate ' + str(i) + ' ' + ' ' + str(user_from_id) + ' ' + str(user_to_id)
+                            callback_data='rate ' + str(i + 1) + ' ' + ' ' + str(user_from_id) + ' ' + str(user_to_id)
                         )
-                        mrk.add(btn)
+                        mrk.insert(btn)
                     await bot.send_message(
                         callback.from_user.id,
                         'Если вы уже встретились и обменяли свои игрушки вы можете оценить участника по состоянию '
@@ -142,6 +142,8 @@ async def acceptance(callback: types.CallbackQuery):
                         'и по обращению обладателем игрушки для обмена',
                         reply_markup=mrk
                     )
+                else:
+                    await callback.answer('ВЫ уже оценили этого пользователя')
 
 
 async def rate_user(callback: types.CallbackQuery):
@@ -161,3 +163,4 @@ def register_next_connection(dp: Dispatcher):
     dp.register_message_handler(my_liked_contact, text=links.menu_my_liked)
     dp.register_callback_query_handler(acceptance, Text(startswith='accept'))
     dp.register_callback_query_handler(rate_user, Text(startswith='rate'))
+
