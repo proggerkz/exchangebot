@@ -74,9 +74,10 @@ async def my_liked_contact(message: types.Message):
                 f'Один из участников хочет поменять игру на вашу игру\n '
                 f'{ad_to.get("name")}\n\n'
                 f'Данные его игрушки:\n '
-                f'Название: {ad_from.get("name")}\n'
-                f'Категория: {ad_from.get("category")}\n'
-                f'Описание: {ad_from.get("description")}\n'
+                f'\U0001f464 *Название*: {ad_from.get("name")}\n'
+                f'\U0001F4C2 *Описание*: {ad_from.get("description")}\n'
+                f'\U00002B50 *Категория*: {ad_to.get("category")}\n'
+                f'\U00002B50 *Рейтинг пользователя*: {users_db.get_rating(ad_from.get("user_id"))}\n',
                 f'Если вам тоже понравилась игра и хотите обменять то я могу дать контакты хозяина',
                 reply_markup=markup
             )
@@ -104,6 +105,9 @@ async def acceptance(callback: types.CallbackQuery):
             await callback.answer(constants.deleted_myself)
         else:
             if acc == "-1":
+                await callback.answer()
+                await my_liked_contact(callback)
+            else:
                 await bot.send_photo(callback.from_user.id,
                                      ad_to.get('photo'),
                                      f'Я хочу обменять мою игру на вашу игру которую вы раньше лайкнули под названием: '
@@ -114,9 +118,6 @@ async def acceptance(callback: types.CallbackQuery):
                                      f'\U00002B50 *Мой рейтинг: {users_db.get_rating(callback.from_user.id)}\n',
                                      parse_mode='Markdown'
                                      )
-                await callback.answer()
-                await my_liked_contact(callback)
-            else:
                 await bot.send_message(
                     callback.from_user.id,
                     'Отправьте сообщение выше участнику по нику: @' + username,
@@ -128,34 +129,32 @@ async def acceptance(callback: types.CallbackQuery):
                     for i in range(5):
                         btn = InlineKeyboardButton(
                             text=str(i + 1),
-                            callback_data='rate ' + str(i + 1) + ' ' + ' ' + str(user_from_id) + ' ' + str(user_to_id)
+                            callback_data='rate ' + str(i + 1) + ' ' + str(user_from_id)
                         )
                         mrk.insert(btn)
                     await bot.send_message(
                         callback.from_user.id,
                         'Если вы уже встретились и обменяли свои игрушки вы можете оценить участника по состоянию '
-                        'игрушки'
-                        'и по обращению обладателем игрушки для обмена',
+                        'игрушки и по обращению обладателем игрушки для обмена',
                         reply_markup=mrk
                     )
             liked_ads.delete_connection(
-                    int(user_from_id),
-                    int(user_to_id),
-                    int(ad_from_id),
-                    int(ad_to_id)
-                )
+                int(user_from_id),
+                int(user_to_id),
+                int(ad_from_id),
+                int(ad_to_id)
+            )
 
 
 async def rate_user(callback: types.CallbackQuery):
     lst = callback.data.split(' ')
     rating = int(lst[1])
     user_from = int(lst[2])
-    user_to = int(lst[3])
-    if rated.have_connection(user_from, user_to) is not None:
-        await callback.answer('Вы оценили этого участника раньше')
-    else:
-        rated.change_rating(user_from, user_to, rating)
+    if rated.have_connection(callback.from_user.id, user_from) is None:
+        rated.change_rating(callback.from_user.id, user_from, rating)
         await callback.answer()
+    else:
+        await callback.answer('Вы оценили этого участника раньше')
 
 
 def register_next_connection(dp: Dispatcher):
