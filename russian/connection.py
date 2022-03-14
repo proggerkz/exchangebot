@@ -114,19 +114,15 @@ async def acceptance(callback: types.CallbackQuery):
                                      f'\U00002B50 *Мой рейтинг: {users_db.get_rating(callback.from_user.id)}\n',
                                      parse_mode='Markdown'
                                      )
-                liked_ads.delete_connection(
-                    int(user_from_id),
-                    int(user_to_id),
-                    int(ad_from_id),
-                    int(ad_to_id)
-                )
                 await callback.answer()
                 await my_liked_contact(callback)
             else:
-                await bot.send_message(callback.from_user.id,
-                                       'Отправьте сообщение выше участнику по нику: @' + username,
-                                       reply_markup=rus_menu_kb_button)
-
+                await bot.send_message(
+                    callback.from_user.id,
+                    'Отправьте сообщение выше участнику по нику: @' + username,
+                    reply_markup=rus_menu_kb_button
+                )
+                await callback.answer()
                 if rated.have_connection(callback.from_user.id, user_from_id) is None:
                     mrk = InlineKeyboardMarkup(row_width=5)
                     for i in range(5):
@@ -142,8 +138,12 @@ async def acceptance(callback: types.CallbackQuery):
                         'и по обращению обладателем игрушки для обмена',
                         reply_markup=mrk
                     )
-                else:
-                    await callback.answer('ВЫ уже оценили этого пользователя')
+            liked_ads.delete_connection(
+                    int(user_from_id),
+                    int(user_to_id),
+                    int(ad_from_id),
+                    int(ad_to_id)
+                )
 
 
 async def rate_user(callback: types.CallbackQuery):
@@ -151,10 +151,11 @@ async def rate_user(callback: types.CallbackQuery):
     rating = int(lst[1])
     user_from = int(lst[2])
     user_to = int(lst[3])
-    if rated.have_connection(user_from, user_to):
+    if rated.have_connection(user_from, user_to) is not None:
         await callback.answer('Вы оценили этого участника раньше')
     else:
         rated.change_rating(user_from, user_to, rating)
+        await callback.answer()
 
 
 def register_next_connection(dp: Dispatcher):

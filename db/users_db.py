@@ -9,9 +9,14 @@ def change_rating(user_id, rating):
     obj = user_col.find_one({
         "user_id": user_id
     })
+
     obj["rating"]["cnt"] += 1
     obj["rating"]["amount"] += rating
-    user_col.update_one({"user_id": user_id}, {"$set": obj}, upsert=False)
+    user_col.update_one(
+        {"user_id": user_id},
+        {"$set": obj},
+        upsert=False
+    )
 
 
 # Проверка если существует участник по нику

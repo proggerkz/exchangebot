@@ -4,10 +4,12 @@ rated = user_db["rated"]
 
 
 def have_connection(user_from, user_to):
-    obj = rated.find_one({
-        "user_from": user_from,
-        "user_to": user_to
-    })
+    obj = rated.find_one(
+        {
+            "user_from": user_from,
+            "user_to": user_to
+        }
+    )
     return obj
 
 
