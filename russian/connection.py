@@ -71,15 +71,16 @@ async def my_liked_contact(message: types.Message):
             await bot.send_photo(
                 message.from_user.id,
                 ad_from.get('photo'),
-                f'Один из участников хочет поменять игру на вашу игру\n '
-                f'{ad_to.get("name")}\n\n'
+                f'Один из участников хочет поменять игру на вашу игру: '
+                f'*{ad_to.get("name")}*\n\n'
                 f'Данные его игрушки:\n '
                 f'\U0001f464 *Название*: {ad_from.get("name")}\n'
                 f'\U0001F4C2 *Описание*: {ad_from.get("description")}\n'
-                f'\U00002B50 *Категория*: {ad_to.get("category")}\n'
-                f'\U00002B50 *Рейтинг пользователя*: {users_db.get_rating(ad_from.get("user_id"))}\n',
+                f'\U00002B50 *Категория*: {ad_from.get("category")}\n'
+                f'\U00002B50 *Рейтинг пользователя*: {users_db.get_rating(ad_from.get("user_id"))}\n'
                 f'Если вам тоже понравилась игра и хотите обменять то я могу дать контакты хозяина',
-                reply_markup=markup
+                reply_markup=markup,
+                parse_mode='Markdown'
             )
 
     else:

@@ -76,7 +76,6 @@ async def work_with_data(user_id, category_id):
 
 async def next_ad(callback: types.CallbackQuery):
     data = callback.data[7:]
-    print(data)
     await work_with_data(callback.from_user.id, data)
     await callback.answer()
 
