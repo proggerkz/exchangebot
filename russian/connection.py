@@ -76,7 +76,7 @@ async def my_liked_contact(message: types.Message):
                 f'Данные его игрушки:\n'
                 f'\U0001f464 *Название*: {ad_from.get("name")}\n'
                 f'\U0001F4C2 *Описание*: {ad_from.get("description")}\n'
-                f'\U00002B50 *Категория*: {ad_from.get("category")}\n'
+                f'\U0001F4D1 *Категория*: {ad_from.get("category")}\n'
                 f'\U00002B50 *Рейтинг пользователя*: {users_db.get_rating(ad_from.get("user_id"))}\n'
                 f'Если вам тоже понравилась игра и хотите обменять то я могу дать контакты хозяина',
                 reply_markup=markup,
@@ -114,7 +114,7 @@ async def acceptance(callback: types.CallbackQuery):
                                      f'*{ad_from.get("name")}*\n\n'
                                      f'\U0001f464 *Название*: {ad_to.get("name")}\n'
                                      f'\U0001F4C2 *Описание*: {ad_to.get("description")}\n'
-                                     f'\U00002B50 *Категория*: {ad_to.get("category")}\n'
+                                     f'\U0001F4D1 *Категория*: {ad_to.get("category")}\n'
                                      f'\U00002B50 *Мой рейтинг*: {users_db.get_rating(callback.from_user.id)}\n',
                                      parse_mode='Markdown'
                                      )

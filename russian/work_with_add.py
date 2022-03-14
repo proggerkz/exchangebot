@@ -22,7 +22,11 @@ class FSMAdmin(StatesGroup):
 async def cm_start(message: types.Message):
     if users_db.have_user(message.from_user.id):
         await FSMAdmin.category.set()
-        await message.reply(links.create_add_text, reply_markup=category_btn_with_cancel)
+        await message.reply(
+            links.create_add_text,
+            reply_markup=category_btn_with_cancel,
+            parse_mode='Markdown'
+        )
     else:
         await russian.change_city(message)
 
