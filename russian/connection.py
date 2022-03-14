@@ -73,7 +73,7 @@ async def my_liked_contact(message: types.Message):
                 ad_from.get('photo'),
                 f'Один из участников хочет поменять игру на вашу игру: '
                 f'*{ad_to.get("name")}*\n\n'
-                f'Данные его игрушки:\n '
+                f'Данные его игрушки:\n'
                 f'\U0001f464 *Название*: {ad_from.get("name")}\n'
                 f'\U0001F4C2 *Описание*: {ad_from.get("description")}\n'
                 f'\U00002B50 *Категория*: {ad_from.get("category")}\n'
@@ -89,7 +89,6 @@ async def my_liked_contact(message: types.Message):
 
 async def acceptance(callback: types.CallbackQuery):
     call_data = callback.data.split(' ')
-    print(call_data)
     acc = call_data[1]
 
     user_from_id, user_to_id = int(call_data[2]), int(call_data[3])
@@ -112,11 +111,11 @@ async def acceptance(callback: types.CallbackQuery):
                 await bot.send_photo(callback.from_user.id,
                                      ad_to.get('photo'),
                                      f'Я хочу обменять мою игру на вашу игру которую вы раньше лайкнули под названием: '
-                                     f'{ad_from.get("name")}\n\n'
+                                     f'*{ad_from.get("name")}*\n\n'
                                      f'\U0001f464 *Название*: {ad_to.get("name")}\n'
                                      f'\U0001F4C2 *Описание*: {ad_to.get("description")}\n'
                                      f'\U00002B50 *Категория*: {ad_to.get("category")}\n'
-                                     f'\U00002B50 *Мой рейтинг: {users_db.get_rating(callback.from_user.id)}\n',
+                                     f'\U00002B50 *Мой рейтинг*: {users_db.get_rating(callback.from_user.id)}\n',
                                      parse_mode='Markdown'
                                      )
                 await bot.send_message(
