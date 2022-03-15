@@ -58,20 +58,22 @@ async def work_with_data(user_id, category_id):
     if ad is None:
         await bot.send_message(user_id, links.no_add_in_this_city)
     else:
+        my_ads = database.get_user_ads(user_id)
         markup = InlineKeyboardMarkup()
         b1 = InlineKeyboardButton(links.nxt_btn, callback_data='nxt_ad ' + category_id)
         b2 = InlineKeyboardButton(constants.wanna_change,
                                   callback_data='like_ad ' + str(ad.get("_id")) + ' ' + str(user_id))
         markup.add(b1, b2)
-        await bot.send_photo(user_id,
-                             ad.get("photo"),
-                             f'\U0001f464 *Название*: {ad.get("name")}\n'
-                             f'\U0001F4C2 *Описание*: {ad.get("description")}\n'
-                             f'\U0001F4D1 *Категория*: {ad.get("category")}\n'
-                             f'\U00002B50 *Рейтинг пользователя*: {users_db.get_rating(ad.get("user_id"))}',
-                             reply_markup=markup,
-                             parse_mode='Markdown'
-                             )
+        await bot.send_photo(
+            user_id,
+            ad.get("photo"),
+            f'\U0001f464 *Название*: {ad.get("name")}\n'
+            f'\U0001F4C2 *Описание*: {ad.get("description")}\n'
+            f'\U0001F4D1 *Категория*: {ad.get("category")}\n'
+            f'\U00002B50 *Рейтинг пользователя*: {users_db.get_rating(ad.get("user_id"))}',
+            reply_markup=markup,
+            parse_mode='Markdown'
+        )
 
 
 async def next_ad(callback: types.CallbackQuery):
@@ -82,10 +84,7 @@ async def next_ad(callback: types.CallbackQuery):
 
 async def check_data(message: types.Message):
     if users_db.have_user(message.from_user.id):
-        if len(list(database.get_user_ads(message.from_user.id))) != 0:
-            await bot.send_message(message.from_user.id, links.choose_category_text, reply_markup=category_with_menu_btn)
-        else:
-            await bot.send_message(message.from_user.id, links.no_user_ad_text)
+        await bot.send_message(message.from_user.id, links.choose_category_text, reply_markup=category_with_menu_btn)
     else:
         await bot.send_message(message.from_user.id, links.where_you_live_text)
 
@@ -95,19 +94,21 @@ async def go_to_menu(message: types.Message):
 
 
 async def like_ad(callback: types.CallbackQuery):
-    data = callback.data.split(' ')
-    ad_id, user_from_id = int(data[1]), int(data[2])
-    ad = database.get_ad_by_ad_id(ad_id)
-    if ad is None:
-        await callback.answer(links.ad_is_deleted)
-    else:
-        ad_owner = database.get_ad_by_ad_id(ad_id).get('user_id')
-        if ad_owner != user_from_id:
-            await connection.make_connection(callback.from_user.id, ad_owner, ad_id, 0, callback.from_user.username)
-            await callback.answer()
+    if len(database.get_user_ads(callback.from_user.id)) != 0:
+        data = callback.data.split(' ')
+        ad_id, user_from_id = int(data[1]), int(data[2])
+        ad = database.get_ad_by_ad_id(ad_id)
+        if ad is None:
+            await callback.answer(links.ad_is_deleted)
         else:
-            await callback.answer(constants.owners_add)
-
+            ad_owner = database.get_ad_by_ad_id(ad_id).get('user_id')
+            if ad_owner != user_from_id:
+                await connection.make_connection(callback.from_user.id, ad_owner, ad_id, 0, callback.from_user.username)
+                await callback.answer()
+            else:
+                await callback.answer(constants.owners_add)
+    else:
+        await callback.answer(links.no_user_ad_text)
 
 def register_step_russian(dp: Dispatcher):
     dp.register_callback_query_handler(rus_lang, text="rus_lang")
