@@ -15,7 +15,7 @@ async def profile(message: types.Message):
         message.text = f'\U0001f464 *Профиль*: `{message.from_user.full_name}`   \n' \
                        f'\U00002B50 *Рейтинг*: {users_db.get_rating(message.from_user.id)}  \n' \
                        f'\U0001F4B8 *Премиум*: {"Да" if is_premium else "Нет"}\n' \
-                       f'\U0001F4C2 *Обьявлении*: {len(database.get_user_ads(message.from_user.id))}' \
+                       f'\U0001F4C2 *Обьявлении*: {len(database.get_user_ads(message.from_user.id))}\n' \
                        f'\U0001F3E0 *Город проживания*: {users_db.get_city_of_user(message.from_user.id)}'
         markup = InlineKeyboardMarkup()
         button = InlineKeyboardButton(constants.premium_text, callback_data='bbb')
