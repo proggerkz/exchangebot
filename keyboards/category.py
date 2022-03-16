@@ -1,5 +1,4 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
-from links import category
 from russian.constants import cancel_text, menu_text
 from russian.categories import categories
 

@@ -4,6 +4,7 @@ from aiogram.dispatcher.filters import Text
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 import database
 import links
+from russian import other
 from create_bot import bot, dp
 from db import users_db
 from keyboards.rus_menu_kb import rus_menu_kb_button
@@ -50,7 +51,7 @@ async def chosen_category(message: types.Message):
         await menu(message.from_user.id)
         await work_with_data(message.from_user.id, message.text)
     else:
-        await change_city(message)
+        await other.city_start(message)
 
 
 async def work_with_data(user_id, category_id):
@@ -81,7 +82,7 @@ async def next_ad(callback: types.CallbackQuery):
     await callback.answer()
 
 
-async def get_category(page, user_id):
+def get_category(page):
     cur_page = page
     cat_keys = list(categories.categories.keys())
     if cur_page * 5 > len(cat_keys):
@@ -93,34 +94,71 @@ async def get_category(page, user_id):
     end_id = min(cur_page * 5 + 5, len(cat_keys))
     for i in range(start_id, end_id):
         button = KeyboardButton(cat_keys[i])
-        if i % 2 == 0:
+        if (i - start_id) % 2 == 0:
             markup.add(button)
         else:
             markup.insert(button)
-    menu_btn = KeyboardButton(constants.menu_text)
-    markup.insert(menu_btn)
     btn1 = KeyboardButton(constants.next_btn)
     btn2 = KeyboardButton(constants.prev_btn)
     if cur_page != 0:
         if cur_page * 5 + 5 < len(cat_keys):
-            markup.add(btn1, btn2)
-        else:
+            markup.insert(btn1)
             markup.add(btn2)
+        else:
+            markup.insert(btn2)
     else:
-        markup.add(btn1)
-    await bot.send_message(
-        user_id,
-        links.menu_text,
-        reply_markup=markup
+        markup.insert(btn1)
+    return markup
+
+
+def get_subcategory(page, category):
+    sub_cat_list = list(categories.categories.get(category))
+    markup = InlineKeyboardMarkup()
+    cat_id = 0
+    for i in range(len(categories.category_list)):
+        if categories.category_list[i] == category:
+            cat_id = i
+    for i in range(page * 7, min(page * 7 + 7, len(sub_cat_list))):
+        button = InlineKeyboardButton(
+            text=sub_cat_list[i],
+            callback_data="sub_cat " + str(cat_id) + ' ' + str(i)
+        )
+        markup.add(button)
+    b1 = InlineKeyboardButton(
+        text='Следующий',
+        callback_data='nxt_sub_cat'
     )
+    b2 = InlineKeyboardButton(
+        text='Предыдуший',
+        callback_data='prev_sub_cat'
+    )
+    if page != 0:
+        if page * 7 + 7 < len(sub_cat_list):
+            markup.add(b2, b1)
+        else:
+            markup.add(b2)
+    elif page * 7 + 7 < len(sub_cat_list):
+        markup.add(b1)
+    return markup
 
 
 async def check_data(message: types.Message):
     if users_db.have_user(message.from_user.id):
-        await get_category(0, message.from_user.id)
-
+        markup = get_category(0)
+        btn = KeyboardButton(constants.menu_text)
+        markup.add(btn)
+        await bot.send_message(
+            message.from_user.id,
+            links.menu_text,
+            reply_markup=markup
+        )
+        users_db.change_category(
+            message.from_user.id,
+            message.text,
+            0
+        )
     else:
-        await bot.send_message(message.from_user.id, links.where_you_live_text)
+        await other.city_start(message)
 
 
 async def go_to_menu(message: types.Message):
@@ -144,9 +182,66 @@ async def like_ad(callback: types.CallbackQuery):
     else:
         await callback.answer(links.no_user_ad_text)
 
+
+async def next_or_prev(message: types.Message):
+    if users_db.have_user(message.from_user.id):
+        last_category = users_db.last_category(message.from_user.id)
+        cat_keys = list(categories.categories.keys())
+        if last_category[0] == links.menu_exchange:
+            lst = last_category[1]
+            if message.text == constants.next_btn:
+                lst = lst + 1
+                if lst * 5 >= len(cat_keys):
+                    lst -= 1
+                markup = get_category(lst)
+                btn = KeyboardButton(constants.menu_text)
+                markup.add(btn)
+                await bot.send_message(
+                    message.from_user.id,
+                    links.choose_right_category,
+                    reply_markup=markup
+                )
+                users_db.change_category(
+                    message.from_user.id,
+                    last_category[0],
+                    lst
+                )
+            else:
+                lst = lst - 1
+                lst = max(lst, 0)
+                markup = get_category(lst)
+                btn = KeyboardButton(constants.menu_text)
+                markup.add(btn)
+                await bot.send_message(
+                    message.from_user.id,
+                    links.choose_right_category,
+                    reply_markup=markup
+                )
+                users_db.change_category(
+                    message.from_user.id,
+                    last_category[0],
+                    lst
+                )
+    else:
+        await other.city_start(message)
+
+
+async def category_menu(message: types.Message):
+    category = message.text
+    markup = get_subcategory(0, category)
+    await bot.send_message(
+        message.from_user.id,
+        constants.cat_text,
+        reply_markup=markup,
+    )
+
+
+
 def register_step_russian(dp: Dispatcher):
     dp.register_callback_query_handler(rus_lang, text="rus_lang")
     dp.register_message_handler(go_to_menu, text=constants.menu_text)
+    dp.register_message_handler(next_or_prev, text=constants.next_btn)
+    dp.register_message_handler(next_or_prev, text=constants.prev_btn)
     dp.register_message_handler(work_with_add.cm_start, text=links.menu_create)
     dp.register_message_handler(work_with_add.cancel_handler, text=constants.cancel_text, state='*')
     dp.register_message_handler(work_with_add.type_city, state=FSMAdmin.type)
@@ -160,7 +255,11 @@ def register_step_russian(dp: Dispatcher):
     dp.register_callback_query_handler(work_with_add.next_my_add, Text(startswith="next_my_ad"))
     dp.register_callback_query_handler(work_with_add.del_my_add, Text(startswith="del_my_ad"))
     dp.register_message_handler(check_data, text=links.menu_exchange)
-    for i in range(len(links.category)):
-        dp.register_message_handler(chosen_category, text=links.category[i])
+
+    for i in range(len(categories.category_list)):
+        dp.register_message_handler(
+            category_menu,
+            text=categories.category_list[i]
+        )
     dp.register_callback_query_handler(next_ad, Text(startswith='nxt_ad'))
     dp.register_callback_query_handler(like_ad, Text(startswith='like_ad'))

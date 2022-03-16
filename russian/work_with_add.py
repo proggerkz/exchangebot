@@ -61,10 +61,15 @@ async def type_city(message: types.Message, state: FSMContext):
     if message.text == constants.cell_text or message.text == constants.exchange_text:
         async with state.proxy() as data:
             data['type'] = message.text
+            data['category_id'] = 0
+            data['subcategory_id'] = 0
             await FSMAdmin.next()
+            markup = russian.get_category(0)
+            btn = KeyboardButton(constants.cancel_text)
+            markup.add(btn)
             await message.reply(
                 links.create_add_text,
-                reply_markup=category_btn_with_cancel,
+                reply_markup=markup,
                 parse_mode='Markdown'
             )
     else:
@@ -75,8 +80,31 @@ async def type_city(message: types.Message, state: FSMContext):
 
 async def load_category(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
+        cat_len = len(list(categories.categories))
         if message.text not in categories.categories.keys():
-            await bot.send_message(message.from_user.id, links.choose_right_category)
+            if message.text == constants.next_btn:
+                data['category_id'] += 1
+                if data['category_id'] * 5 >= cat_len:
+                    data['category_id'] -= 1
+                markup = russian.get_category(data['category_id'])
+                btn = KeyboardButton(constants.cancel_text)
+                markup.insert(btn)
+                await message.reply(
+                    links.choose_right_category,
+                    reply_markup=markup
+                )
+            elif message.text == constants.prev_btn:
+                if data['category_id'] != 0:
+                    data['category_id'] -= 1
+                markup = russian.get_category(data['category_id'])
+                btn = KeyboardButton(constants.cancel_text)
+                markup.insert(btn)
+                await message.reply(
+                    links.choose_right_category,
+                    reply_markup=markup
+                )
+            else:
+                await bot.send_message(message.from_user.id, links.choose_right_category)
         else:
             data['category'] = message.text
             await FSMAdmin.next()

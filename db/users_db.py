@@ -46,6 +46,10 @@ async def create_or_update_user(user_id, user_city):
             "rating": {
                 "cnt": 0,
                 "amount": 0
+            },
+            "last_category": {
+                "name": "Nothing",
+                "id": 0,
             }
         }
         user_col.insert_one(new_user)
@@ -96,6 +100,30 @@ def get_rating(user_id):
         return 0
     else:
         return rate_amount / rate_cnt
+
+
+# Получить последнюю категорию
+def last_category(user_id):
+    obj = user_col.find_one({
+        "user_id": user_id
+    })
+    category_name = obj.get("last_category", {}).get("name")
+    category_id = obj.get("last_category", {}).get("id")
+    return [category_name, category_id]
+
+
+# Поменять категорию последнюю
+def change_category(user_id, category_name, category_id):
+    obj = user_col.find_one({
+        "user_id": user_id
+    })
+    obj["last_category"]["name"] = category_name
+    obj["last_category"]["id"] = category_id
+    user_col.update_one(
+        {"user_id": user_id},
+        {"$set": obj},
+        upsert=False
+    )
 
 
 # Все активные юзера
