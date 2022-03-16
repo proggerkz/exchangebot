@@ -4,3 +4,4 @@ from russian import connection
 from russian import other
 from russian import constants
 from russian import profile
+from russian import categories

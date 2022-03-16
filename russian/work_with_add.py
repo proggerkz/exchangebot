@@ -4,28 +4,33 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeybo
 from aiogram.dispatcher import FSMContext
 from create_bot import bot
 from db import users_db
+
+from russian import categories
 from aiogram.dispatcher.filters.state import State, StatesGroup
 import links
 import database
+from keyboards.skip import skip_btn
 from keyboards.category import category_btn_with_cancel
 from keyboards.cancel_kb import cancel_kb
+from keyboards.type import type_btn
 from keyboards.rus_menu_kb import rus_menu_kb_button
 
 
 class FSMAdmin(StatesGroup):
+    type = State()
     category = State()
     photo = State()
     name = State()
     description = State()
+    price = State()
 
 
 async def cm_start(message: types.Message):
     if users_db.have_user(message.from_user.id):
-        await FSMAdmin.category.set()
+        await FSMAdmin.type.set()
         await message.reply(
-            links.create_add_text,
-            reply_markup=category_btn_with_cancel,
-            parse_mode='Markdown'
+            constants.type_of_cell,
+            reply_markup=type_btn
         )
     else:
         await russian.change_city(message)
@@ -45,27 +50,67 @@ async def cancel_handler(message: types.Message, state: FSMContext):
         button = KeyboardButton(text=links.menu_change_city)
         markup.add(button)
         await state.finish()
-        await bot.send_message(message.from_user.id,
-                               constants.to_use_text,
-                               reply_markup=markup)
+        await bot.send_message(
+            message.from_user.id,
+            constants.to_use_text,
+            reply_markup=markup
+        )
+
+
+async def type_city(message: types.Message, state: FSMContext):
+    if message.text == constants.cell_text or message.text == constants.exchange_text:
+        async with state.proxy() as data:
+            data['type'] = message.text
+            await FSMAdmin.next()
+            await message.reply(
+                links.create_add_text,
+                reply_markup=category_btn_with_cancel,
+                parse_mode='Markdown'
+            )
+    else:
+        await message.reply(
+            links.choose_right_category
+        )
 
 
 async def load_category(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
-        if message.text not in links.category:
+        if message.text not in categories.categories.keys():
             await bot.send_message(message.from_user.id, links.choose_right_category)
         else:
             data['category'] = message.text
             await FSMAdmin.next()
-            await message.reply(constants.download_photo, reply_markup=cancel_kb)
+            await message.reply(
+                constants.download_photo,
+                reply_markup=cancel_kb
+            )
+
+
+async def skip(message: types.Message, state: FSMContext):
+    await FSMAdmin.next()
+    await message.reply(
+        constants.download_name,
+        reply_markup=cancel_kb
+    )
 
 
 async def load_photo(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
-        print(message.photo[0])
-        data['photo'] = message.photo[0].file_id
-    await FSMAdmin.next()
-    await message.reply(constants.download_name, reply_markup=cancel_kb)
+        if 'photo' not in data.keys():
+            data['photo'] = []
+        data['photo'].append(message.photo[0].file_id)
+
+        if len(data['photo']) == 9:
+            await FSMAdmin.next()
+            await message.reply(
+                constants.download_name,
+                reply_markup=cancel_kb
+            )
+        else:
+            await message.reply(
+                constants.new_or_skip,
+                reply_markup=skip_btn
+            )
 
 
 async def load_name(message: types.Message, state: FSMContext):
@@ -76,13 +121,42 @@ async def load_name(message: types.Message, state: FSMContext):
 
 
 async def load_description(message: types.Message, state: FSMContext):
+    ok = False
     async with state.proxy() as data:
         data['description'] = message.text
         data['user_id'] = message.from_user.id
         data['city'] = users_db.get_city_of_user(message.from_user.id)
-    await database.ad_add_moderator(state)
-    await message.answer(constants.success_download, reply_markup=rus_menu_kb_button)
-    await state.finish()
+        if data['type'] == constants.exchange_text:
+            ok = True
+    if ok:
+        await database.ad_add_moderator(state)
+        await message.reply(
+            constants.success_download,
+            reply_markup=rus_menu_kb_button
+        )
+        await state.finish()
+    else:
+        await message.reply(
+            constants.how_much_photo,
+            reply_markup=cancel_kb
+        )
+        await FSMAdmin.next()
+
+
+async def load_cost(message: types.Message, state: FSMContext):
+    if message.text.isnumeric():
+        async with state.proxy() as data:
+            data['cost'] = int(message.text)
+        await database.ad_add_moderator(state)
+        await message.reply(
+            constants.success_download,
+            reply_markup=rus_menu_kb_button
+        )
+        await state.finish()
+    else:
+        await message.reply(
+            constants.numeric_text
+        )
 
 
 async def create_markup_and_send_message(el, user_id):
