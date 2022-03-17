@@ -15,6 +15,7 @@ class CityOfUser(StatesGroup):
     city = State()
 
 
+
 async def city_start(message: types.Message):
     markup = ReplyKeyboardMarkup(resize_keyboard=True)
     button = KeyboardButton(constants.cancel_text)
@@ -69,6 +70,10 @@ async def city_call_change(callback: types.CallbackQuery, state=FSMContext):
     await russian.menu(callback.from_user.id)
 
 
+async def skip_call(callback: types.CallbackQuery):
+    await callback.answer()
+
+
 async def choose_language(message: types.Message):
     if users_db.have_user(message.from_user.id):
         await russian.menu(message.from_user.id)
@@ -95,6 +100,7 @@ def check_text(dp: Dispatcher):
     dp.register_message_handler(choose_language, commands=['start'])
     dp.register_message_handler(city_start, text=links.menu_change_city)
     dp.register_message_handler(city_name, state=CityOfUser.city)
+    dp.register_callback_query_handler(skip_call, Text(equals='skip_call'))
     dp.register_callback_query_handler(
         city_call_change,
         Text(startswith='ct'),

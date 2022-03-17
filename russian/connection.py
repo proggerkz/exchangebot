@@ -50,6 +50,7 @@ async def chosen_ad_exchange(callback: types.CallbackQuery):
         await callback.answer(constants.already_liked)
     else:
         liked_ads.create_data(user_from_id, user_to_id, ad_from_id, ad_to_id, username_from)
+        liked_ads.create_data(user_to_id, user_from_id, ad_to_id, ad_from_id, username_from)
         await callback.answer('Участнику отправлено запрос об обмене')
 
 

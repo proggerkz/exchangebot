@@ -62,13 +62,17 @@ def get_user_ads(user_id):
 
 # Получение обьявления по индексу по городам
 def get_ad_by_city_id(city, city_id, category):
-    cur_db = list(ad_collection.find({"city": city, "category": category}))
+    cur_db = list(ad_collection.find({"city": city, "subcategory": category}))
     if len(cur_db) == 0:
         return None
     else:
         city_id = city_id % len(cur_db)
         return cur_db[city_id]
 
+
+def get_city_ads(city, category):
+    cur_db = list(ad_collection.find({"city": city, "subcategory": category}))
+    return cur_db
 
 # Получение обьявление по ид обьявления
 def get_ad_by_ad_id(ad_id):

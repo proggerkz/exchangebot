@@ -2,7 +2,8 @@ from russian import constants
 menu_create = '\U0001F195 Создать обьявление'
 menu_my_ads = '\U0001F4C2 Мои обьявления'
 menu_change_city = '\U0001F3E0 Поменять город'
-menu_exchange = '\U0001F50E Обмен игрушками'
+menu_search = '\U0001F50E Поиск'
+menu_exchange = '\U00002630 Категории'
 menu_profile = '\U0001f464 Профиль'
 menu_my_liked = '\U0001F4D1 Запросы'
 help_text = """

@@ -62,14 +62,14 @@ async def chosen_category(callback: types.CallbackQuery):
                 links.no_add_in_this_city
             )
         else:
-            markup = work_with_data(callback.from_user.id, subcategory, 0)
+            markup = work_with_data(callback.from_user.id, subcategory, 0, ad.get("_id"))
             photo_list = list(ad.get('photo'))
             await bot.send_photo(
                 callback.from_user.id,
                 photo_list[0],
                 f'\U0001f464 *Название*: {ad.get("name")}\n'
                 f'\U0001F4C2 *Описание*: {ad.get("description")}\n'
-                f'\U0001F4D1 *Категория*: {ad.get("category")}/{ad.get("subcategory")}\n'
+                f'\U0001F4D1 *Категория*: `{ad.get("category")}/{ad.get("subcategory")}`\n'
                 f'\U00002B50 *Рейтинг пользователя*: {users_db.get_rating(ad.get("user_id"))}',
                 reply_markup=markup,
                 parse_mode='Markdown'
@@ -78,8 +78,8 @@ async def chosen_category(callback: types.CallbackQuery):
         await other.city_start(callback)
 
 
-def work_with_data(user_id, category, photo_id):
-    ad = users_db.get_last(user_id, category)
+def work_with_data(user_id, category, photo_id, ad_id):
+    ad = database.get_ad_by_ad_id(ad_id)
     markup = InlineKeyboardMarkup(row_width=4)
     b0text = ' '
     b3text = ' '
@@ -121,7 +121,24 @@ def work_with_data(user_id, category, photo_id):
                       str(ad.get("_id"))
 
     )
-    markup.add(b0, b3)
+    b1 = InlineKeyboardButton(
+        text=str(photo_id + 1),
+        callback_data='skip_call'
+    )
+    b4 = InlineKeyboardButton(
+        text="Следующий",
+        callback_data='next_ad ' +
+                      ad.get("_id") + ' ' +
+                      str(category_id) + ' ' +
+                      str(sub_cat_id)
+    )
+    b5 = InlineKeyboardButton(
+        text="Контакты",
+        callback_data='contact ' +
+                      ad.get("_id")
+    )
+    markup.add(b0, b1, b3)
+    markup.add(b4, b5)
     return markup
 
 
@@ -133,8 +150,11 @@ async def back_or_front(callback: types.CallbackQuery):
     do_it = call_data[3]
     sub_cat_id = int(call_data[4])
     ad_id = int(call_data[5])
+
     ad = database.get_ad_by_ad_id(ad_id)
-    if do_it == "-1":
+    if ad is None:
+        await callback.answer(links.ad_is_deleted)
+    elif do_it == "-1":
         await callback.answer()
     else:
         sub_cat_list = list(
@@ -151,32 +171,32 @@ async def back_or_front(callback: types.CallbackQuery):
         markup = work_with_data(
             callback.from_user.id,
             sub_cat,
-            photo_id
+            photo_id,
+            ad.get("_id")
         )
         photo_list = list(ad.get('photo'))
 
         msg_id = callback.message.message_id
-        await bot.edit_message_media(
-            chat_id=callback.from_user.id,
-            message_id=msg_id,
-            media=types.InputMediaPhoto(
-                media=photo_list[photo_id],
-                caption=f'\U0001f464 *Название*: {ad.get("name")}\n'
-                        f'\U0001F4C2 *Описание*: {ad.get("description")}\n'
-                        f'\U0001F4D1 *Категория*: {ad.get("category")}/{ad.get("subcategory")}\n'
-                        f'\U00002B50 *Рейтинг пользователя*: {users_db.get_rating(ad.get("user_id"))}',
-                parse_mode='Markdown'
+        try:
+            await bot.edit_message_media(
+                chat_id=callback.from_user.id,
+                message_id=msg_id,
+                media=types.InputMediaPhoto(
+                    media=photo_list[photo_id],
+                    caption=f'\U0001f464 *Название*: {ad.get("name")}\n'
+                            f'\U0001F4C2 *Описание*: {ad.get("description")}\n'
+                            f'\U0001F4D1 *Категория*: `{ad.get("category")}/{ad.get("subcategory")}`\n'
+                            f'\U00002B50 *Рейтинг пользователя*: {users_db.get_rating(ad.get("user_id"))}',
+                    parse_mode='Markdown'
 
-            ),
-            reply_markup=markup,
-        )
-
-
-
-async def next_ad(callback: types.CallbackQuery):
-    data = callback.data[7:]
-    await work_with_data(callback.from_user.id, data)
-    await callback.answer()
+                ),
+                reply_markup=markup,
+            )
+        except:
+            await bot.send_message(
+                callback.from_user.id,
+                'Попробуйте нажать /start и зайдите в поиск обратно'
+            )
 
 
 def get_category(page):
@@ -324,6 +344,51 @@ async def next_or_prev(message: types.Message):
         await other.city_start(message)
 
 
+def get_cat_name(category_id, subcategory_id):
+    cat_list = list(categories.categories.get(
+        categories.category_list[category_id]
+    ))
+    cat_list.sort()
+    return cat_list[subcategory_id]
+
+
+async def next_cat_ad(callback: types.CallbackQuery):
+    user_city = users_db.get_city_of_user(callback.from_user.id)
+    call_data = callback.data.split(' ')
+    ad_id = call_data[1]
+    cat_id = int(call_data[2])
+    sub_cat_id = int(call_data[3])
+    subcategory = get_cat_name(cat_id, sub_cat_id)
+    ads = database.get_city_ads(user_city, subcategory)
+    if len(ads) == 0:
+        await callback.answer(links.no_add_in_this_city)
+    else:
+        _id = len(ads) - 1
+        for i in range(len(ads)):
+            cur_ad_id = ads[i].get("_id")
+            if cur_ad_id < ad_id:
+                _id = i
+        markup = work_with_data(
+            callback.from_user.id,
+            subcategory,
+            0,
+            ads[_id].get("_id")
+        )
+        ad = ads[_id]
+        photo_list = ad.get('photo')
+        await bot.send_photo(
+            callback.from_user.id,
+            photo_list[0],
+            f'\U0001f464 *Название*: {ad.get("name")}\n'
+            f'\U0001F4C2 *Описание*: {ad.get("description")}\n'
+            f'\U0001F4D1 *Категория*: `{ad.get("category")}/{ad.get("subcategory")}`\n'
+            f'\U00002B50 *Рейтинг пользователя*: {users_db.get_rating(ad.get("user_id"))}',
+            reply_markup=markup,
+            parse_mode='Markdown'
+        )
+
+
+
 async def next_or_prev_sub_category(callback: types.CallbackQuery):
     print('I am here')
     call_data = callback.data.split(' ')
@@ -353,6 +418,23 @@ async def category_menu(message: types.Message):
     )
 
 
+async def contact(callback: types.CallbackQuery):
+    call_data = callback.data.split(' ')
+    ad_id = call_data[1]
+    ad = database.get_ad_by_ad_id(ad_id)
+    if ad is None:
+        await callback.answer(links.ad_is_deleted)
+    else:
+        await bot.send_message(
+            callback.from_user.id,
+            f'*Контакты пользователя*: \n'
+            f'\U0001f4f1 Номер телефона: {ad.get("phone")}\n'
+            f'\U00002714 Телеграм: @{ad.get("username")}',
+            parse_mode='Markdown'
+        )
+        await callback.answer()
+
+
 def register_step_russian(dp: Dispatcher):
     # Russian
     dp.register_callback_query_handler(rus_lang, text="rus_lang")
@@ -361,16 +443,17 @@ def register_step_russian(dp: Dispatcher):
     dp.register_message_handler(next_or_prev, text=constants.prev_btn)
     dp.register_callback_query_handler(next_or_prev_sub_category, Text(startswith='nxt_sub_cat'))
     dp.register_callback_query_handler(next_or_prev_sub_category, Text(startswith='prev_sub_cat'))
+    dp.register_callback_query_handler(contact, Text(startswith='contact'))
     dp.register_message_handler(check_data, text=links.menu_exchange)
     for i in range(len(categories.category_list)):
         dp.register_message_handler(
             category_menu,
             text=categories.category_list[i]
         )
+    dp.register_callback_query_handler(next_cat_ad, Text(startswith='next_ad'))
     dp.register_callback_query_handler(back_or_front, Text(startswith='back_photo'))
     dp.register_callback_query_handler(back_or_front, Text(startswith='front_photo'))
     dp.register_callback_query_handler(chosen_category, Text(startswith='sub_cat'))
-    dp.register_callback_query_handler(next_ad, Text(startswith='nxt_ad'))
     dp.register_callback_query_handler(like_ad, Text(startswith='like_ad'))
 
     # Work with add
@@ -383,6 +466,7 @@ def register_step_russian(dp: Dispatcher):
     dp.register_callback_query_handler(work_with_add.load_subcategory, state=FSMAdmin.subcategory)
     dp.register_message_handler(work_with_add.skip, text=constants.skip_text, state=FSMAdmin.photo)
     dp.register_message_handler(work_with_add.load_photo, content_types=['photo'], state=FSMAdmin.photo)
+    dp.register_message_handler(work_with_add.load_phone_number, state=FSMAdmin.phone)
     dp.register_message_handler(work_with_add.load_name, state=FSMAdmin.name)
     dp.register_message_handler(work_with_add.load_description, state=FSMAdmin.description)
     dp.register_message_handler(work_with_add.load_cost, state=FSMAdmin.price)

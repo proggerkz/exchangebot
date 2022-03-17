@@ -21,6 +21,7 @@ class FSMAdmin(StatesGroup):
     category = State()
     subcategory = State()
     photo = State()
+    phone = State()
     name = State()
     description = State()
     price = State()
@@ -183,7 +184,7 @@ async def load_subcategory(callback: types.CallbackQuery, state=FSMContext):
 async def skip(message: types.Message, state: FSMContext):
     await FSMAdmin.next()
     await message.reply(
-        constants.download_name,
+        constants.write_phone,
         reply_markup=cancel_kb
     )
 
@@ -197,7 +198,7 @@ async def load_photo(message: types.Message, state: FSMContext):
         if len(data['photo']) == 9:
             await FSMAdmin.next()
             await message.reply(
-                constants.download_name,
+                constants.write_phone,
                 reply_markup=cancel_kb
             )
         else:
@@ -207,11 +208,23 @@ async def load_photo(message: types.Message, state: FSMContext):
             )
 
 
+async def load_phone_number(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data['phone'] = message.text
+    await FSMAdmin.next()
+    await message.reply(
+        constants.download_name
+    )
+
+
 async def load_name(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['name'] = message.text
     await FSMAdmin.next()
-    await message.reply(constants.download_description, reply_markup=cancel_kb)
+    await message.reply(
+        constants.download_description,
+        reply_markup=cancel_kb
+    )
 
 
 async def load_description(message: types.Message, state: FSMContext):
@@ -220,6 +233,7 @@ async def load_description(message: types.Message, state: FSMContext):
         data['description'] = message.text
         data['user_id'] = message.from_user.id
         data['city'] = users_db.get_city_of_user(message.from_user.id)
+        data['username'] = message.from_user.username
         if data['type'] == constants.exchange_text:
             ok = True
     if ok:
