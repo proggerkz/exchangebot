@@ -74,6 +74,7 @@ def get_city_ads(city, category):
     cur_db = list(ad_collection.find({"city": city, "subcategory": category}))
     return cur_db
 
+
 # Получение обьявление по ид обьявления
 def get_ad_by_ad_id(ad_id):
     cur_db = ad_collection.find_one({"_id": str(ad_id)})
@@ -86,3 +87,7 @@ def get_moderator_ad():
     return ad
 
 
+# Получение всех обьявлений в дб
+def get_all():
+    ads = ad_collection.find()
+    return list(ads)
