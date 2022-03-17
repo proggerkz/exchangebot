@@ -40,6 +40,20 @@ def delete_add_ads(_id):
     ad_collection.delete_one({"_id": str(_id)})
 
 
+# Получить последнее обновление
+def get_last(category_id, user_city):
+    ads_list = ad_collection.find({
+        "subcategory": category_id,
+        "city": user_city
+    })
+    ads_list = list(ads_list)
+    if len(ads_list) == 0:
+        return None
+    else:
+        return (ads_list[-1])
+
+
+
 # Обьявление определенного участника
 def get_user_ads(user_id):
     ads = list(ad_collection.find({"user_id": user_id}))

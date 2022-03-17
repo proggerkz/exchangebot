@@ -46,34 +46,131 @@ async def change_city(message: types.Message):
     await bot.send_message(message.from_user.id, links.where_you_live_text)
 
 
-async def chosen_category(message: types.Message):
-    if users_db.have_user(message.from_user.id):
-        await menu(message.from_user.id)
-        await work_with_data(message.from_user.id, message.text)
+async def chosen_category(callback: types.CallbackQuery):
+    if users_db.have_user(callback.from_user.id):
+        call_data = callback.data.split(' ')
+        cat_id = int(call_data[1])
+        sub_cat_id = int(call_data[2])
+        category = categories.category_list[cat_id]
+        category_list = list(categories.categories.get(category))
+        category_list.sort()
+        subcategory = category_list[sub_cat_id]
+        ad = users_db.get_last(callback.from_user.id, subcategory)
+        if ad is None:
+            await bot.send_message(
+                callback.from_user.id,
+                links.no_add_in_this_city
+            )
+        else:
+            markup = work_with_data(callback.from_user.id, subcategory, 0)
+            photo_list = list(ad.get('photo'))
+            await bot.send_photo(
+                callback.from_user.id,
+                photo_list[0],
+                f'\U0001f464 *Название*: {ad.get("name")}\n'
+                f'\U0001F4C2 *Описание*: {ad.get("description")}\n'
+                f'\U0001F4D1 *Категория*: {ad.get("category")}/{ad.get("subcategory")}\n'
+                f'\U00002B50 *Рейтинг пользователя*: {users_db.get_rating(ad.get("user_id"))}',
+                reply_markup=markup,
+                parse_mode='Markdown'
+            )
     else:
-        await other.city_start(message)
+        await other.city_start(callback)
 
 
-async def work_with_data(user_id, category_id):
-    ad = users_db.get_next(user_id, category_id)
-    if ad is None:
-        await bot.send_message(user_id, links.no_add_in_this_city)
+def work_with_data(user_id, category, photo_id):
+    ad = users_db.get_last(user_id, category)
+    markup = InlineKeyboardMarkup(row_width=4)
+    b0text = ' '
+    b3text = ' '
+    category_id = 0
+    sub_cat_id = 0
+    for i in range(len(categories.category_list)):
+        cat_list = list(categories.categories.get(
+            categories.category_list[i]
+        ))
+        cat_list.sort()
+        for j in range(len(cat_list)):
+            if cat_list[j] == category:
+                category_id = i
+                sub_cat_id = j
+    b0data = "-1"
+    b3data = "-1"
+    if photo_id != 0:
+        b0text = '<<'
+        b0data = "1"
+    if photo_id != len(list(ad.get('photo'))) - 1:
+        b3text = '>>'
+        b3data = "1"
+    b0 = InlineKeyboardButton(
+        text=b0text,
+        callback_data='back_photo ' +
+                      str(category_id) + ' ' +
+                      str(photo_id) + ' ' +
+                      b0data + ' ' +
+                      str(sub_cat_id) + ' ' +
+                      str(ad.get("_id"))
+    )
+    b3 = InlineKeyboardButton(
+        text=b3text,
+        callback_data='front_photo ' +
+                      str(category_id) + ' ' +
+                      str(photo_id) + ' ' +
+                      b3data + ' ' +
+                      str(sub_cat_id) + ' ' +
+                      str(ad.get("_id"))
+
+    )
+    markup.add(b0, b3)
+    return markup
+
+
+async def back_or_front(callback: types.CallbackQuery):
+    call_data = callback.data.split(' ')
+    type_id = call_data[0]
+    category_id = int(call_data[1])
+    photo_id = int(call_data[2])
+    do_it = call_data[3]
+    sub_cat_id = int(call_data[4])
+    ad_id = int(call_data[5])
+    ad = database.get_ad_by_ad_id(ad_id)
+    if do_it == "-1":
+        await callback.answer()
     else:
-        markup = InlineKeyboardMarkup()
-        b1 = InlineKeyboardButton(links.nxt_btn, callback_data='nxt_ad ' + category_id)
-        b2 = InlineKeyboardButton(constants.wanna_change,
-                                  callback_data='like_ad ' + str(ad.get("_id")) + ' ' + str(user_id))
-        markup.add(b1, b2)
-        await bot.send_photo(
-            user_id,
-            ad.get("photo"),
-            f'\U0001f464 *Название*: {ad.get("name")}\n'
-            f'\U0001F4C2 *Описание*: {ad.get("description")}\n'
-            f'\U0001F4D1 *Категория*: {ad.get("category")}\n'
-            f'\U00002B50 *Рейтинг пользователя*: {users_db.get_rating(ad.get("user_id"))}',
-            reply_markup=markup,
-            parse_mode='Markdown'
+        sub_cat_list = list(
+            categories.categories.get(
+                categories.category_list[category_id]
+            )
         )
+        sub_cat_list.sort()
+        sub_cat = sub_cat_list[sub_cat_id]
+        if type_id == 'back_photo':
+            photo_id = photo_id - 1
+        else:
+            photo_id = photo_id + 1
+        markup = work_with_data(
+            callback.from_user.id,
+            sub_cat,
+            photo_id
+        )
+        photo_list = list(ad.get('photo'))
+
+        msg_id = callback.message.message_id
+        await bot.edit_message_media(
+            chat_id=callback.from_user.id,
+            message_id=msg_id,
+            media=types.InputMediaPhoto(
+                media=photo_list[photo_id],
+                caption=f'\U0001f464 *Название*: {ad.get("name")}\n'
+                        f'\U0001F4C2 *Описание*: {ad.get("description")}\n'
+                        f'\U0001F4D1 *Категория*: {ad.get("category")}/{ad.get("subcategory")}\n'
+                        f'\U00002B50 *Рейтинг пользователя*: {users_db.get_rating(ad.get("user_id"))}',
+                parse_mode='Markdown'
+
+            ),
+            reply_markup=markup,
+        )
+
 
 
 async def next_ad(callback: types.CallbackQuery):
@@ -270,6 +367,9 @@ def register_step_russian(dp: Dispatcher):
             category_menu,
             text=categories.category_list[i]
         )
+    dp.register_callback_query_handler(back_or_front, Text(startswith='back_photo'))
+    dp.register_callback_query_handler(back_or_front, Text(startswith='front_photo'))
+    dp.register_callback_query_handler(chosen_category, Text(startswith='sub_cat'))
     dp.register_callback_query_handler(next_ad, Text(startswith='nxt_ad'))
     dp.register_callback_query_handler(like_ad, Text(startswith='like_ad'))
 

@@ -112,6 +112,15 @@ def last_category(user_id):
     return [category_name, category_id]
 
 
+# Получить последнее обьявление
+def get_last(user_id, category_id):
+    obj = user_col.find_one({
+        "user_id": user_id
+    })
+    user_city = obj['user_city']
+    return database.get_last(category_id, user_city)
+
+
 # Поменять категорию последнюю
 def change_category(user_id, category_name, category_id):
     obj = user_col.find_one({
