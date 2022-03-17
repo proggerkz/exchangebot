@@ -8,7 +8,7 @@ from russian import other
 from create_bot import bot, dp
 from db import users_db
 from keyboards.rus_menu_kb import rus_menu_kb_button
-from russian import work_with_add, constants, connection, categories
+from russian import work_with_add, constants, categories
 from russian.work_with_add import FSMAdmin
 
 

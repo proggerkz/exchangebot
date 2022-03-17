@@ -31,7 +31,8 @@ async def cm_start(message: types.Message):
         markup.add(btn)
         await message.reply(
             links.create_add_text,
-            reply_markup=markup
+            reply_markup=markup,
+            parse_mode='Markdown'
         )
     else:
         await other.city_start(message)
@@ -282,7 +283,7 @@ async def create_markup_and_send_message(el, user_id, photo_id):
         f'\U0001f464 *Название*: {el.get("name")}\n'
         f'\U0001F4C2 *Описание*: {el.get("description")}\n'
         f'\U0001F4D1 *Категория*: {el.get("category")}\n'
-        f'\U00002B50 *Рейтинг пользователя*: {users_db.get_rating(el.get("user_id"))}',
+        f'\U00002B50 *Цена*: {el.get("cost")}',
         reply_markup=markup,
         parse_mode='Markdown'
     )
