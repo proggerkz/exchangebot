@@ -19,6 +19,7 @@ from keyboards.rus_menu_kb import rus_menu_kb_button
 class FSMAdmin(StatesGroup):
     type = State()
     category = State()
+    subcategory = State()
     photo = State()
     name = State()
     description = State()
@@ -88,7 +89,7 @@ async def load_category(message: types.Message, state: FSMContext):
                     data['category_id'] -= 1
                 markup = russian.get_category(data['category_id'])
                 btn = KeyboardButton(constants.cancel_text)
-                markup.insert(btn)
+                markup.add(btn)
                 await message.reply(
                     links.choose_right_category,
                     reply_markup=markup
@@ -98,7 +99,7 @@ async def load_category(message: types.Message, state: FSMContext):
                     data['category_id'] -= 1
                 markup = russian.get_category(data['category_id'])
                 btn = KeyboardButton(constants.cancel_text)
-                markup.insert(btn)
+                markup.add(btn)
                 await message.reply(
                     links.choose_right_category,
                     reply_markup=markup
@@ -108,10 +109,75 @@ async def load_category(message: types.Message, state: FSMContext):
         else:
             data['category'] = message.text
             await FSMAdmin.next()
+            markup = russian.get_subcategory(0, message.text, 0)
+            await bot.send_message(
+                message.from_user.id,
+                'ОК',
+                reply_markup=cancel_kb
+            )
             await message.reply(
+                links.choose_right_category,
+                reply_markup=markup
+            )
+
+
+async def load_subcategory(callback: types.CallbackQuery, state=FSMContext):
+    type_call = callback.data.split(' ')
+    if type_call[0] == 'sub_cat':
+        cat_id = int(type_call[1])
+        data_cat = ''
+        async with state.proxy() as data:
+            data_cat = data['category']
+        cat_cur_id = 0
+        for i in range(len(categories.category_list)):
+            if categories.category_list[i] == data_cat:
+                cat_cur_id = i
+        if cat_cur_id != cat_id:
+            await callback.answer(
+                'Кажется вы данное время в создании обьявления'
+            )
+        else:
+            category = categories.category_list[cat_id]
+            sub_cat_list = list(categories.categories.get(category))
+            sub_cat_list.sort()
+            sub_cat_id = int(type_call[2])
+            async with state.proxy() as data:
+                data['subcategory'] = sub_cat_list[sub_cat_id]
+            await FSMAdmin.next()
+            await callback.message.reply(
                 constants.download_photo,
                 reply_markup=cancel_kb
             )
+            await callback.answer()
+    elif type_call[0] == 'prev_sub_cat' or type_call[0] == 'nxt_sub_cat':
+        page_id = int(type_call[1])
+        msg_id = int(type_call[2])
+        cat_id = int(type_call[3])
+        data_cat = ''
+        async with state.proxy() as data:
+            data_cat = data['category']
+        cat_cur_id = 0
+        for i in range(len(categories.category_list)):
+            if categories.category_list[i] == data_cat:
+                cat_cur_id = i
+        if cat_cur_id != cat_id:
+            await callback.answer(
+                'Кажется вы данное время в создании обьявления'
+            )
+        else:
+            if type_call[0] == 'prev_sub_cat':
+                page_id = page_id - 1
+            else:
+                page_id = page_id + 1
+            markup = russian.get_subcategory(page_id, categories.category_list[cat_id], msg_id)
+            await bot.edit_message_text(
+                chat_id=callback.from_user.id,
+                message_id=callback.message.message_id,
+                text=links.choose_right_category,
+                reply_markup=markup
+            )
+    else:
+        await callback.answer(constants.create_or_cancel)
 
 
 async def skip(message: types.Message, state: FSMContext):

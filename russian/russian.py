@@ -111,8 +111,9 @@ def get_category(page):
     return markup
 
 
-def get_subcategory(page, category):
+def get_subcategory(page, category, msg_id):
     sub_cat_list = list(categories.categories.get(category))
+    sub_cat_list.sort()
     markup = InlineKeyboardMarkup()
     cat_id = 0
     for i in range(len(categories.category_list)):
@@ -126,11 +127,11 @@ def get_subcategory(page, category):
         markup.add(button)
     b1 = InlineKeyboardButton(
         text='Следующий',
-        callback_data='nxt_sub_cat'
+        callback_data='nxt_sub_cat ' + str(page) + ' ' + str(msg_id) + ' ' + str(cat_id)
     )
     b2 = InlineKeyboardButton(
         text='Предыдуший',
-        callback_data='prev_sub_cat'
+        callback_data='prev_sub_cat ' + str(page) + ' ' + str(msg_id) + ' ' + str(cat_id)
     )
     if page != 0:
         if page * 7 + 7 < len(sub_cat_list):
@@ -226,9 +227,28 @@ async def next_or_prev(message: types.Message):
         await other.city_start(message)
 
 
+async def next_or_prev_sub_category(callback: types.CallbackQuery):
+    print('I am here')
+    call_data = callback.data.split(' ')
+    page_id = int(call_data[1])
+    msg_id = int(call_data[2])
+    cat_id = int(call_data[3])
+    if call_data[0] == 'nxt_sub_cat':
+        page_id = page_id + 1
+    else:
+        page_id = page_id - 1
+    markup = get_subcategory(page_id, categories.category_list[cat_id], 0)
+    await bot.edit_message_text(
+        chat_id=callback.from_user.id,
+        message_id=callback.message.message_id,
+        text=constants.cat_text,
+        reply_markup=markup
+    )
+
+
 async def category_menu(message: types.Message):
     category = message.text
-    markup = get_subcategory(0, category)
+    markup = get_subcategory(0, category, message.message_id)
     await bot.send_message(
         message.from_user.id,
         constants.cat_text,
@@ -236,26 +256,15 @@ async def category_menu(message: types.Message):
     )
 
 
-
 def register_step_russian(dp: Dispatcher):
+    # Russian
     dp.register_callback_query_handler(rus_lang, text="rus_lang")
     dp.register_message_handler(go_to_menu, text=constants.menu_text)
     dp.register_message_handler(next_or_prev, text=constants.next_btn)
     dp.register_message_handler(next_or_prev, text=constants.prev_btn)
-    dp.register_message_handler(work_with_add.cm_start, text=links.menu_create)
-    dp.register_message_handler(work_with_add.cancel_handler, text=constants.cancel_text, state='*')
-    dp.register_message_handler(work_with_add.type_city, state=FSMAdmin.type)
-    dp.register_message_handler(work_with_add.load_category, state=FSMAdmin.category)
-    dp.register_message_handler(work_with_add.skip, text=constants.skip_text,state=FSMAdmin.photo)
-    dp.register_message_handler(work_with_add.load_photo, content_types=['photo'], state=FSMAdmin.photo)
-    dp.register_message_handler(work_with_add.load_name, state=FSMAdmin.name)
-    dp.register_message_handler(work_with_add.load_description, state=FSMAdmin.description)
-    dp.register_message_handler(work_with_add.load_cost, state=FSMAdmin.price)
-    dp.register_message_handler(work_with_add.my_adds, text=links.menu_my_ads)
-    dp.register_callback_query_handler(work_with_add.next_my_add, Text(startswith="next_my_ad"))
-    dp.register_callback_query_handler(work_with_add.del_my_add, Text(startswith="del_my_ad"))
+    dp.register_callback_query_handler(next_or_prev_sub_category, Text(startswith='nxt_sub_cat'))
+    dp.register_callback_query_handler(next_or_prev_sub_category, Text(startswith='prev_sub_cat'))
     dp.register_message_handler(check_data, text=links.menu_exchange)
-
     for i in range(len(categories.category_list)):
         dp.register_message_handler(
             category_menu,
@@ -263,3 +272,22 @@ def register_step_russian(dp: Dispatcher):
         )
     dp.register_callback_query_handler(next_ad, Text(startswith='nxt_ad'))
     dp.register_callback_query_handler(like_ad, Text(startswith='like_ad'))
+
+    # Work with add
+    # Начать создать обьявление
+    dp.register_message_handler(work_with_add.cm_start, text=links.menu_create)
+    # Отмена создания
+    dp.register_message_handler(work_with_add.cancel_handler, text=constants.cancel_text, state='*')
+    dp.register_message_handler(work_with_add.type_city, state=FSMAdmin.type)
+    dp.register_message_handler(work_with_add.load_category, state=FSMAdmin.category)
+    dp.register_callback_query_handler(work_with_add.load_subcategory, state=FSMAdmin.subcategory)
+    dp.register_message_handler(work_with_add.skip, text=constants.skip_text, state=FSMAdmin.photo)
+    dp.register_message_handler(work_with_add.load_photo, content_types=['photo'], state=FSMAdmin.photo)
+    dp.register_message_handler(work_with_add.load_name, state=FSMAdmin.name)
+    dp.register_message_handler(work_with_add.load_description, state=FSMAdmin.description)
+    dp.register_message_handler(work_with_add.load_cost, state=FSMAdmin.price)
+    dp.register_message_handler(work_with_add.my_adds, text=links.menu_my_ads)
+    dp.register_callback_query_handler(work_with_add.next_my_add, Text(startswith="next_my_ad"))
+    dp.register_callback_query_handler(work_with_add.del_my_add, Text(startswith="del_my_ad"))
+
+
