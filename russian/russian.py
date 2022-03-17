@@ -67,7 +67,7 @@ async def chosen_category(callback: types.CallbackQuery):
                 f'\U0001f464 *Название*: {ad.get("name")}\n'
                 f'\U0001F4C2 *Описание*: {ad.get("description")}\n'
                 f'\U0001F4D1 *Категория*: `{ad.get("category")}/{ad.get("subcategory")}`\n'
-                f'\U0001f4b0 *Цена*: {ad.get("cost")} тг',
+                f'\U0001f4b0 *Цена*: {ad.get("cost")} {"тг" if str(ad.get("cost")).isnumeric() else " "}',
                 reply_markup=markup,
                 parse_mode='Markdown'
             )
@@ -184,7 +184,7 @@ async def back_or_front(callback: types.CallbackQuery):
                     caption=f'\U0001f464 *Название*: {ad.get("name")}\n'
                             f'\U0001F4C2 *Описание*: {ad.get("description")}\n'
                             f'\U0001F4D1 *Категория*: `{ad.get("category")}/{ad.get("subcategory")}`\n'
-                            f'\U0001f4b0 *Цена*: {ad.get("cost")} тг',
+                            f'\U0001f4b0 *Цена*: {ad.get("cost")} {"тг" if str(ad.get("cost")).isnumeric() else " "}',
                     parse_mode='Markdown'
 
                 ),
@@ -364,7 +364,7 @@ async def next_cat_ad(callback: types.CallbackQuery):
             f'\U0001f464 *Название*: {ad.get("name")}\n'
             f'\U0001F4C2 *Описание*: {ad.get("description")}\n'
             f'\U0001F4D1 *Категория*: `{ad.get("category")}/{ad.get("subcategory")}`\n'
-            f'\U0001F4B0 *Цена*: {ad.get("cost")} тг\n',
+            f'\U0001F4B0 *Цена*: {ad.get("cost")} {"тг" if str(ad.get("cost")).isnumeric() else " "}\n',
             reply_markup=markup,
             parse_mode='Markdown'
         )

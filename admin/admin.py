@@ -21,12 +21,21 @@ async def moderator(message: types.Message):
             b1 = InlineKeyboardButton(text=constants.approve, callback_data='mod_ok ' + moderator_ad["_id"])
             b2 = InlineKeyboardButton(text=constants.delete, callback_data='mod_del ' + moderator_ad["_id"])
             markup.add(b1, b2)
-            await bot.send_photo(message.from_user.id,
-                                 moderator_ad.get('photo'),
-                                 f'Название: {moderator_ad.get("name")}\n'
-                                 f'Категория: {moderator_ad.get("category")}\n'
-                                 f'Описание: {moderator_ad.get("description")}\n',
-                                 reply_markup=markup)
+            photo_list = list(moderator_ad.get('photo'))
+            for i in range(len(photo_list)):
+                await bot.send_photo(
+                    chat_id=message.from_user.id,
+                    photo=photo_list[i]
+                )
+            await bot.send_message(
+                message.from_user.id,
+                f'Название: {moderator_ad.get("name")}\n'
+                f'Категория: {moderator_ad.get("category")}\n'
+                f'Описание: {moderator_ad.get("description")}\n'
+                f'Цена: {moderator_ad.get("cost")}\n',
+                reply_markup=markup
+
+            )
 
 
 async def delete_moderator(callback: types.CallbackQuery):

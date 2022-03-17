@@ -1,5 +1,5 @@
 #    production token
-# TOKEN = '5243742208:AAGfVv7ld5UsBc0qSa5A-IRD0wPjox0I1OY'
+# TOKEN = '5143221251:AAHvhSqNzE4H5xw6-v2fuvcEOmAlT_MuDB8'
 # test token
 TOKEN = '5197564576:AAHnUvhqK7800kkjYK8w0QvyzP7g65bbf3I'
 DB_USERNAME = 'db_proggerkz'

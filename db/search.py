@@ -36,6 +36,15 @@ def set_cnt(_id):
         "_id": _id
     })
     search["cnt"] += 1
+    search_col.update_one(
+        {
+            "_id": _id,
+        },
+        {
+            "$set": search,
+        },
+        upsert=False
+    )
     return search["cnt"]
 
 
