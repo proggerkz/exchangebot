@@ -42,10 +42,6 @@ async def print_adds_in_cities(message: types.Message):
     await menu(message.from_user.id)
 
 
-async def change_city(message: types.Message):
-    await bot.send_message(message.from_user.id, links.where_you_live_text)
-
-
 async def chosen_category(callback: types.CallbackQuery):
     if users_db.have_user(callback.from_user.id):
         call_data = callback.data.split(' ')
@@ -61,6 +57,7 @@ async def chosen_category(callback: types.CallbackQuery):
                 callback.from_user.id,
                 links.no_add_in_this_city
             )
+
         else:
             markup = work_with_data(callback.from_user.id, subcategory, 0, ad.get("_id"))
             photo_list = list(ad.get('photo'))
@@ -70,10 +67,11 @@ async def chosen_category(callback: types.CallbackQuery):
                 f'\U0001f464 *Название*: {ad.get("name")}\n'
                 f'\U0001F4C2 *Описание*: {ad.get("description")}\n'
                 f'\U0001F4D1 *Категория*: `{ad.get("category")}/{ad.get("subcategory")}`\n'
-                f'\U00002B50 *Рейтинг пользователя*: {users_db.get_rating(ad.get("user_id"))}',
+                f'\U0001f4b0 *Цена*: {ad.get("cost")} тг',
                 reply_markup=markup,
                 parse_mode='Markdown'
             )
+        await callback.answer()
     else:
         await other.city_start(callback)
 
@@ -186,7 +184,7 @@ async def back_or_front(callback: types.CallbackQuery):
                     caption=f'\U0001f464 *Название*: {ad.get("name")}\n'
                             f'\U0001F4C2 *Описание*: {ad.get("description")}\n'
                             f'\U0001F4D1 *Категория*: `{ad.get("category")}/{ad.get("subcategory")}`\n'
-                            f'\U00002B50 *Рейтинг пользователя*: {users_db.get_rating(ad.get("user_id"))}',
+                            f'\U0001f4b0 *Цена*: {ad.get("cost")} тг',
                     parse_mode='Markdown'
 
                 ),
@@ -283,22 +281,6 @@ async def go_to_menu(message: types.Message):
     await menu(message.from_user.id)
 
 
-async def like_ad(callback: types.CallbackQuery):
-    if len(database.get_user_ads(callback.from_user.id)) != 0:
-        data = callback.data.split(' ')
-        ad_id, user_from_id = int(data[1]), int(data[2])
-        ad = database.get_ad_by_ad_id(ad_id)
-        if ad is None:
-            await callback.answer(links.ad_is_deleted)
-        else:
-            ad_owner = database.get_ad_by_ad_id(ad_id).get('user_id')
-            if ad_owner != user_from_id:
-                await connection.make_connection(callback.from_user.id, ad_owner, ad_id, 0, callback.from_user.username)
-                await callback.answer()
-            else:
-                await callback.answer(constants.owners_add)
-    else:
-        await callback.answer(links.no_user_ad_text)
 
 
 async def next_or_prev(message: types.Message):
@@ -382,11 +364,10 @@ async def next_cat_ad(callback: types.CallbackQuery):
             f'\U0001f464 *Название*: {ad.get("name")}\n'
             f'\U0001F4C2 *Описание*: {ad.get("description")}\n'
             f'\U0001F4D1 *Категория*: `{ad.get("category")}/{ad.get("subcategory")}`\n'
-            f'\U00002B50 *Рейтинг пользователя*: {users_db.get_rating(ad.get("user_id"))}',
+            f'\U0001F4B0 *Цена*: {ad.get("cost")} тг\n',
             reply_markup=markup,
             parse_mode='Markdown'
         )
-
 
 
 async def next_or_prev_sub_category(callback: types.CallbackQuery):
@@ -454,14 +435,12 @@ def register_step_russian(dp: Dispatcher):
     dp.register_callback_query_handler(back_or_front, Text(startswith='back_photo'))
     dp.register_callback_query_handler(back_or_front, Text(startswith='front_photo'))
     dp.register_callback_query_handler(chosen_category, Text(startswith='sub_cat'))
-    dp.register_callback_query_handler(like_ad, Text(startswith='like_ad'))
 
     # Work with add
     # Начать создать обьявление
     dp.register_message_handler(work_with_add.cm_start, text=links.menu_create)
     # Отмена создания
     dp.register_message_handler(work_with_add.cancel_handler, text=constants.cancel_text, state='*')
-    dp.register_message_handler(work_with_add.type_city, state=FSMAdmin.type)
     dp.register_message_handler(work_with_add.load_category, state=FSMAdmin.category)
     dp.register_callback_query_handler(work_with_add.load_subcategory, state=FSMAdmin.subcategory)
     dp.register_message_handler(work_with_add.skip, text=constants.skip_text, state=FSMAdmin.photo)

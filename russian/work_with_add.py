@@ -4,20 +4,16 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeybo
 from aiogram.dispatcher import FSMContext
 from create_bot import bot
 from db import users_db
-
-from russian import categories
+from russian import categories, other
 from aiogram.dispatcher.filters.state import State, StatesGroup
 import links
 import database
 from keyboards.skip import skip_btn
-from keyboards.category import category_btn_with_cancel
 from keyboards.cancel_kb import cancel_kb
-from keyboards.type import type_btn
 from keyboards.rus_menu_kb import rus_menu_kb_button
-
+from keyboards.cost import cost_kb
 
 class FSMAdmin(StatesGroup):
-    type = State()
     category = State()
     subcategory = State()
     photo = State()
@@ -29,13 +25,16 @@ class FSMAdmin(StatesGroup):
 
 async def cm_start(message: types.Message):
     if users_db.have_user(message.from_user.id):
-        await FSMAdmin.type.set()
+        await FSMAdmin.category.set()
+        markup = russian.get_category(0)
+        btn = KeyboardButton(constants.cancel_text)
+        markup.add(btn)
         await message.reply(
-            constants.type_of_cell,
-            reply_markup=type_btn
+            links.create_add_text,
+            reply_markup=markup
         )
     else:
-        await russian.change_city(message)
+        await other.city_start(message)
 
 
 async def cancel_handler(message: types.Message, state: FSMContext):
@@ -59,29 +58,10 @@ async def cancel_handler(message: types.Message, state: FSMContext):
         )
 
 
-async def type_city(message: types.Message, state: FSMContext):
-    if message.text == constants.cell_text or message.text == constants.exchange_text:
-        async with state.proxy() as data:
-            data['type'] = message.text
-            data['category_id'] = 0
-            data['subcategory_id'] = 0
-            await FSMAdmin.next()
-            markup = russian.get_category(0)
-            btn = KeyboardButton(constants.cancel_text)
-            markup.add(btn)
-            await message.reply(
-                links.create_add_text,
-                reply_markup=markup,
-                parse_mode='Markdown'
-            )
-    else:
-        await message.reply(
-            links.choose_right_category
-        )
-
-
 async def load_category(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
+        if "category_id" not in data.keys():
+            data["category_id"] = 0
         cat_len = len(list(categories.categories))
         if message.text not in categories.categories.keys():
             if message.text == constants.next_btn:
@@ -228,27 +208,16 @@ async def load_name(message: types.Message, state: FSMContext):
 
 
 async def load_description(message: types.Message, state: FSMContext):
-    ok = False
     async with state.proxy() as data:
         data['description'] = message.text
         data['user_id'] = message.from_user.id
         data['city'] = users_db.get_city_of_user(message.from_user.id)
         data['username'] = message.from_user.username
-        if data['type'] == constants.exchange_text:
-            ok = True
-    if ok:
-        await database.ad_add_moderator(state)
-        await message.reply(
-            constants.success_download,
-            reply_markup=rus_menu_kb_button
-        )
-        await state.finish()
-    else:
-        await message.reply(
+    await message.reply(
             constants.how_much_photo,
-            reply_markup=cancel_kb
+            reply_markup=cost_kb
         )
-        await FSMAdmin.next()
+    await FSMAdmin.next()
 
 
 async def load_cost(message: types.Message, state: FSMContext):
@@ -261,20 +230,55 @@ async def load_cost(message: types.Message, state: FSMContext):
             reply_markup=rus_menu_kb_button
         )
         await state.finish()
+    elif message.text == constants.free_text or message.text == constants.equalize_text:
+        async with state.proxy() as data:
+            data['cost'] = message.text
+        await database.ad_add_moderator(state)
+        await message.reply(
+            constants.success_download,
+            reply_markup=rus_menu_kb_button
+        )
+        await state.finish()
     else:
         await message.reply(
             constants.numeric_text
         )
 
 
-async def create_markup_and_send_message(el, user_id):
-    markup = InlineKeyboardMarkup()
+async def create_markup_and_send_message(el, user_id, photo_id):
+    markup = InlineKeyboardMarkup(row_width=3)
     b1 = InlineKeyboardButton(text=links.nxt_btn, callback_data="next_my_ad " + el.get("_id"))
     b2 = InlineKeyboardButton(text=links.del_btn, callback_data="del_my_ad " + el.get("_id"))
+    photo_list = list(el.get('photo'))
+    b0data = "-1"
+    b3data = "-1"
+    b0text = ' '
+    b3text = ' '
+    if photo_id != 0:
+        b0text = '<<'
+        b0data = "1"
+    if photo_id != len(list(photo_list)) - 1:
+        b3text = '>>'
+        b3data = "1"
+    bx = InlineKeyboardButton(
+        text=b0text,
+        callback_data='prev_mine ' + el.get("_id") + ' ' + str(photo_id) + ' ' + b0data
+    )
+
+    by = InlineKeyboardButton(
+        text=str(photo_id + 1),
+        callback_data='skip_call'
+    )
+
+    bz = InlineKeyboardButton(
+        text=b3text,
+        callback_data='next_mine ' + el.get("_id") + ' ' + str(photo_id) + ' ' + b3data
+    )
+    markup.add(bx, by, bz)
     markup.add(b1, b2)
     await bot.send_photo(
         user_id,
-        el.get("photo"),
+        photo_list[photo_id],
         f'\U0001f464 *Название*: {el.get("name")}\n'
         f'\U0001F4C2 *Описание*: {el.get("description")}\n'
         f'\U0001F4D1 *Категория*: {el.get("category")}\n'
@@ -290,9 +294,9 @@ async def my_adds(message: types.Message):
         if len(cur_db) == 0:
             await bot.send_message(message.from_user.id, links.no_add_text)
         else:
-            await create_markup_and_send_message(cur_db[0], message.from_user.id)
+            await create_markup_and_send_message(cur_db[0], message.from_user.id, 0)
     else:
-        await russian.change_city(message)
+        await other.city_start(message)
 
 
 async def next_my_add(callback: types.CallbackQuery):
@@ -308,7 +312,7 @@ async def next_my_add(callback: types.CallbackQuery):
     else:
         id_of_last += 1
         id_of_last %= len(cur_db)
-        await create_markup_and_send_message(cur_db[id_of_last], callback.from_user.id)
+        await create_markup_and_send_message(cur_db[id_of_last], callback.from_user.id, 0)
         await callback.answer()
 
 
