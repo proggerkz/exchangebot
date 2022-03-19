@@ -282,7 +282,7 @@ async def create_markup_and_send_message(el, user_id, photo_id):
         photo_list[photo_id],
         f'\U0001f464 *Название*: {el.get("name")}\n'
         f'\U0001F4C2 *Описание*: {el.get("description")}\n'
-        f'\U0001F4D1 *Категория*: `{el.get("category")}/{el.get("subcategory")}`\n'
+        f'\U0001F4D1 *Категория*: {el.get("category")}/{el.get("subcategory")}\n'
         f'\U0001f4b0 *Цена*: {el.get("cost")} {"тг" if str(el.get("cost")).isnumeric() else " "}',
         reply_markup=markup,
         parse_mode='Markdown'

@@ -108,7 +108,7 @@ async def next_or_prev_photo(callback: types.CallbackQuery):
                     media=photo_list[photo_id],
                     caption=f'\U0001f464 *Название*: {ad.get("name")}\n'
                             f'\U0001F4C2 *Описание*: {ad.get("description")}\n'
-                            f'\U0001F4D1 *Категория*: `{ad.get("category")}/{ad.get("subcategory")}`\n'
+                            f'\U0001F4D1 *Категория*: {ad.get("category")}/{ad.get("subcategory")}\n'
                             f'\U0001f4b0 *Цена*: {ad.get("cost")} {"тг" if str(ad.get("cost")).isnumeric() else " "}',
                             parse_mode='Markdown'
                 ),
@@ -147,8 +147,8 @@ async def load_text(message: types.Message, state: FSMContext):
                 photo_list[0],
                 f'\U0001f464 *Название*: {ad.get("name")}\n'
                 f'\U0001F4C2 *Описание*: {ad.get("description")}\n'
-                f'\U0001F4D1 *Категория*: `{ad.get("category")}/{ad.get("subcategory")}`\n'
-                f'\U0001F4B0 *Цена*: {ad.get("cost")}\n',
+                f'\U0001F4D1 *Категория*: {ad.get("category")}/{ad.get("subcategory")}\n'
+                f'\U0001F4B0 *Цена*: {ad.get("cost")}  {"тг" if str(ad.get("cost")).isnumeric() else " "}\n',
                 reply_markup=markup,
                 parse_mode='Markdown'
             )
@@ -174,8 +174,8 @@ async def next_search_ad(callback: types.CallbackQuery):
             photo_list[0],
             f'\U0001f464 *Название*: {ad.get("name")}\n'
             f'\U0001F4C2 *Описание*: {ad.get("description")}\n'
-            f'\U0001F4D1 *Категория*: `{ad.get("category")}/{ad.get("subcategory")}`\n'
-            f'\U0001F4B0 *Цена*: {ad.get("cost")}\n',
+            f'\U0001F4D1 *Категория*: {ad.get("category")}/{ad.get("subcategory")}\n'
+            f'\U0001F4B0 *Цена*: {ad.get("cost")}  {"тг" if str(ad.get("cost")).isnumeric() else " "}\n',
             reply_markup=markup,
             parse_mode='Markdown'
         )
@@ -235,8 +235,8 @@ async def next_or_prev_mine(callback: types.CallbackQuery):
                     media=photo_list[photo_id],
                     caption=f'\U0001f464 *Название*: {ad.get("name")}\n'
                             f'\U0001F4C2 *Описание*: {ad.get("description")}\n'
-                            f'\U0001F4D1 *Категория*: `{ad.get("category")}/{ad.get("subcategory")}`\n'
-                            f'\U0001f4b0 *Цена*: {ad.get("cost")} тг',
+                            f'\U0001F4D1 *Категория*: {ad.get("category")}/{ad.get("subcategory")}\n'
+                            f'\U0001f4b0 *Цена*: {ad.get("cost")} {"тг" if str(ad.get("cost")).isnumeric() else " "}',
                             parse_mode='Markdown'
                 ),
                 reply_markup=markup,
