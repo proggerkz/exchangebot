@@ -1,0 +1,1 @@
+from FSMAdmin import main

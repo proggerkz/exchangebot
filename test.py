@@ -22,3 +22,11 @@ import database
 #
 #
 # add_connection(609616860, 405696444, 49, 51, "dias0x1B")
+
+from db.users_db import user_col
+
+def get_all_ids():
+    ads = user_col.find({})
+    for ad in ads:
+        print(ad.get("user_id"))
+get_all_ids()

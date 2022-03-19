@@ -9,7 +9,8 @@ from create_bot import bot, dp
 from db import users_db
 from keyboards.rus_menu_kb import rus_menu_kb_button
 from russian import work_with_add, constants, categories
-from russian.work_with_add import FSMAdmin
+from FSMAdmin.main import FSMAdmin
+from FSMAdmin import main as FSMmain
 
 
 async def menu(user_id):
@@ -438,17 +439,17 @@ def register_step_russian(dp: Dispatcher):
 
     # Work with add
     # Начать создать обьявление
-    dp.register_message_handler(work_with_add.cm_start, text=links.menu_create)
+    dp.register_message_handler(FSMmain.cm_start, text=links.menu_create)
     # Отмена создания
-    dp.register_message_handler(work_with_add.cancel_handler, text=constants.cancel_text, state='*')
-    dp.register_message_handler(work_with_add.load_category, state=FSMAdmin.category)
-    dp.register_callback_query_handler(work_with_add.load_subcategory, state=FSMAdmin.subcategory)
-    dp.register_message_handler(work_with_add.skip, text=constants.skip_text, state=FSMAdmin.photo)
-    dp.register_message_handler(work_with_add.load_photo, content_types=['photo'], state=FSMAdmin.photo)
-    dp.register_message_handler(work_with_add.load_phone_number, state=FSMAdmin.phone)
-    dp.register_message_handler(work_with_add.load_name, state=FSMAdmin.name)
-    dp.register_message_handler(work_with_add.load_description, state=FSMAdmin.description)
-    dp.register_message_handler(work_with_add.load_cost, state=FSMAdmin.price)
+    dp.register_message_handler(FSMmain.cancel_handler, text=constants.cancel_text, state='*')
+    dp.register_message_handler(FSMmain.load_category, state=FSMAdmin.category)
+    dp.register_callback_query_handler(FSMmain.load_subcategory, state=FSMAdmin.subcategory)
+    dp.register_message_handler(FSMmain.skip, text=constants.skip_text, state=FSMAdmin.photo)
+    dp.register_message_handler(FSMmain.load_photo, content_types=['photo'], state=FSMAdmin.photo)
+    dp.register_message_handler(FSMmain.load_phone_number, state=FSMAdmin.phone)
+    dp.register_message_handler(FSMmain.load_name, state=FSMAdmin.name)
+    dp.register_message_handler(FSMmain.load_description, state=FSMAdmin.description)
+    dp.register_message_handler(FSMmain.load_cost, state=FSMAdmin.price)
     dp.register_message_handler(work_with_add.my_adds, text=links.menu_my_ads)
     dp.register_callback_query_handler(work_with_add.next_my_add, Text(startswith="next_my_ad"))
     dp.register_callback_query_handler(work_with_add.del_my_add, Text(startswith="del_my_ad"))

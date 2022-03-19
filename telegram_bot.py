@@ -7,6 +7,5 @@ admin.register_step_admin(dp)
 profile.register_next_profile(dp)
 search.register_next_search(dp)
 other.check_text(dp)
-
 if __name__ == "__main__":
     executor.start_polling(dp, skip_updates=True)

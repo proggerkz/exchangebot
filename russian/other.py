@@ -39,13 +39,16 @@ def lcs(X, Y):
                 L[i][j] = max(L[i - 1][j], L[i][j - 1])
     return L[m][n]
 
-
 async def city_name(message: types.Message, state: FSMContext):
-    city = message.text
+    city = str(message.text)
+    city = city.lower()
     city_list = []
     for i in range(len(cities)):
         cur_city = cities[i]
         name_city = str(cur_city.split('(')[0])
+        if len(name_city) > len(city):
+            name_city = name_city[:len(city)]
+        name_city = name_city.lower()
         dist = lcs(name_city, city)
         st = [dist, cur_city, i]
         city_list.append(st)
