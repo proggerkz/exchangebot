@@ -8,6 +8,7 @@ from russian import constants, russian
 from db import users_db
 from aiogram import types
 import links
+import database
 from cities import cities
 
 
@@ -38,6 +39,16 @@ def lcs(X, Y):
             else:
                 L[i][j] = max(L[i - 1][j], L[i][j - 1])
     return L[m][n]
+
+
+async def statistics(message: types.Message):
+    await bot.send_message(
+        message.from_user.id,
+        f'\U0001f4ca *Количество пользователей*: {str(users_db.active_users())}\n'
+        f'\U0001F4C2 *Объявлении*: {len(database.get_all())}',
+        parse_mode='Markdown'
+    )
+
 
 async def city_name(message: types.Message, state: FSMContext):
     city = str(message.text)
@@ -100,6 +111,7 @@ async def message_filter(message: types.Message):
 
 
 def check_text(dp: Dispatcher):
+    dp.register_message_handler(statistics, text=links.menu_statistics)
     dp.register_message_handler(choose_language, commands=['start'])
     dp.register_message_handler(city_start, text=links.menu_change_city)
     dp.register_message_handler(city_name, state=CityOfUser.city)
