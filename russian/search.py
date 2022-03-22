@@ -122,6 +122,7 @@ async def next_or_prev_photo(callback: types.CallbackQuery):
 async def load_text(message: types.Message, state: FSMContext):
     search_text = str(message.text)
     search_text = search_text.lower()
+    users_db.upd_user(message.from_user.id, search_text)
     if len(search_text) > 50:
         await message.reply(
             constants.not_more_than_50

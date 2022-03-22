@@ -6,6 +6,7 @@ menu_exchange = '\U00002630 Категории'
 menu_profile = '\U0001f464 Профиль'
 menu_my_liked = '\U0001F4D1 Запросы'
 menu_statistics = '\U0001f4ca Статистика'
+menu_rec = '\U0001f4a1 Рекомендации'
 help_text = """
 *Функции бота*:
 

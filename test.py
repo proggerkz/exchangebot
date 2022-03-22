@@ -29,4 +29,21 @@ def get_all_ids():
     ads = user_col.find({})
     for ad in ads:
         print(ad.get("user_id"))
-get_all_ids()
+# get_all_ids()
+
+
+def upd_all_users():
+    ads = user_col.find()
+    for ad in ads:
+        cur_ad = ad
+        cur_ad["search_list"] = []
+        user_col.update_one(
+            {
+                "_id": cur_ad["_id"],
+            },
+            {
+                "$set": cur_ad,
+            },
+            upsert=False
+        )
+upd_all_users()

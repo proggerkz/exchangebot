@@ -50,7 +50,8 @@ async def create_or_update_user(user_id, user_city):
             "last_category": {
                 "name": "Nothing",
                 "id": 0,
-            }
+            },
+            "search_list": [],
         }
         user_col.insert_one(new_user)
     else:
@@ -146,3 +147,36 @@ def get_is_premium(user_id):
         "user_id": user_id
     })
     return obj.get('is_premium')
+
+
+# Update search
+def upd_user(user_id, search_txt):
+    obj = user_col.find_one({
+        "user_id": user_id
+    })
+    arr = list(obj.get("search_list"))
+    if search_txt in arr:
+        arr.remove(search_txt)
+    if len(arr) == 10:
+        arr.pop()
+    arr.append(search_txt)
+    obj["search_list"] = arr
+    user_col.update_one(
+        {
+            "user_id": user_id,
+        },
+        {
+            "$set": obj
+        },
+        upsert=False
+    )
+
+
+# Get search list
+def get_search_list(user_id):
+    obj = user_col.find_one(
+        {
+            "user_id": user_id
+        }
+    )
+    return list(obj.get("search_list"))

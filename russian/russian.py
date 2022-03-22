@@ -11,6 +11,7 @@ from keyboards.rus_menu_kb import rus_menu_kb_button
 from russian import work_with_add, constants, categories
 from FSMAdmin.main import FSMAdmin
 from FSMAdmin import main as FSMmain
+from russian import recomendation
 
 
 async def menu(user_id):
@@ -436,6 +437,13 @@ def register_step_russian(dp: Dispatcher):
     dp.register_callback_query_handler(back_or_front, Text(startswith='back_photo'))
     dp.register_callback_query_handler(back_or_front, Text(startswith='front_photo'))
     dp.register_callback_query_handler(chosen_category, Text(startswith='sub_cat'))
+
+    # Recomendation
+    dp.register_message_handler(recomendation.recommend, text=links.menu_rec)
+    dp.register_callback_query_handler(recomendation.back_or_front_rec, Text(startswith='front_rec'))
+    dp.register_callback_query_handler(recomendation.back_or_front_rec, Text(startswith='back_rec'))
+    dp.register_callback_query_handler(recomendation.next_rec, Text(startswith='next_rec'))
+
 
     # Work with add
     # Начать создать обьявление
